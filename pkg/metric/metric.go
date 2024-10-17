@@ -24,6 +24,7 @@ const (
 )
 
 type MetricSource struct {
+	Name            string
 	Type            SourceType
 	Source          string
 	RefreshInterval int
@@ -43,7 +44,7 @@ func (ms *MetricSource) Sql() Sql {
 }
 
 func (ms *MetricSource) CreateOrReplaceSql() Sql {
-	return Sql("create or replace " + ms.Source + " as " + string(ms.Sql()))
+	return Sql("create or replace table " + ms.Name + " as " + string(ms.Sql()) + ";")
 }
 
 type Metric struct {
@@ -53,19 +54,30 @@ type Metric struct {
 	Sql     Sql
 }
 
-func GetSourceDefinitions() []MetricSource {
-	return nil
+func GetMetricSourceDefinitions() []MetricSource {
+	sourceFile := "s3://okta-snowflake/query_history.parquet"
+	source := MetricSource{
+		Name:            "snowflake_query_history",
+		Type:            ParquetFileSourceType,
+		Source:          sourceFile,
+		RefreshInterval: 1,
+	}
+	source2 := MetricSource{
+		Name:            "snowflake_login_history",
+		Type:            ParquetFileSourceType,
+		Source:          "s3://okta-snowflake/query_history.parquet",
+		RefreshInterval: 3,
+	}
+	return []MetricSource{
+		source,
+		source2,
+	}
 }
 
 func GetMetricDefinitions() []Metric {
 	log.Debug().Msg("getting metric definitions")
 	// Return an example definition now
-	sql := "select * from read_parquet('sample.parquet')"
-	source := MetricSource{
-		Type:            SqlSourceType,
-		Source:          sql,
-		RefreshInterval: 10,
-	}
+	source := GetMetricSourceDefinitions()[0]
 	return []Metric{{
 		Enabled: true,
 		Type:    GaugeMetricType,

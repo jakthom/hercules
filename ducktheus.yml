@@ -1,1 +1,4 @@
-xxxxx
+version: 1
+
+debug: false
+port: 9100

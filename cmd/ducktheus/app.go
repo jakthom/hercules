@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/dbecorp/ducktheus_exporter/pkg/config"
 	"github.com/dbecorp/ducktheus_exporter/pkg/metric"
+	"github.com/dbecorp/ducktheus_exporter/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -21,8 +23,8 @@ var VERSION string
 
 type DuckTheus struct {
 	config  config.Config
-	sources map[string]metric.MetricSource
-	metrics map[string]metric.Metric
+	sources []metric.MetricSource
+	metrics []metric.Metric
 }
 
 func (d *DuckTheus) configure() {
@@ -31,10 +33,30 @@ func (d *DuckTheus) configure() {
 	d.config, _ = config.GetConfig()
 }
 
+func (d *DuckTheus) initializeSources() {
+	d.sources = metric.GetMetricSourceDefinitions()
+	// For every source start a timer that refreshes said source
+	for _, source := range d.sources {
+		ticker := time.NewTicker(time.Duration(source.RefreshInterval) * time.Second)
+		done := make(chan bool)
+		go func() {
+			for {
+				select {
+				case <-done:
+					return
+				case <-ticker.C:
+					fmt.Println("refreshing source: ", source.Name+" with sql: "+string(source.CreateOrReplaceSql()))
+				}
+			}
+		}()
+	}
+	util.Pprint(d.sources)
+}
+
 func (d *DuckTheus) Initialize() {
 	log.Debug().Msg("initializing ducktheus")
 	d.configure()
-	// Remove
+	d.initializeSources()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 
