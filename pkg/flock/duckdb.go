@@ -6,8 +6,6 @@ import (
 	"database/sql/driver"
 
 	"github.com/dbecorp/ducktheus_exporter/pkg/config"
-	"github.com/dbecorp/ducktheus_exporter/pkg/db"
-	"github.com/dbecorp/ducktheus_exporter/pkg/metrics"
 	"github.com/marcboeker/go-duckdb"
 	"github.com/rs/zerolog/log"
 )
@@ -37,17 +35,6 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	return db, conn
 }
 
-func RunMetric(conn *sql.Conn, metric metrics.Metric) ([]metrics.QueryResult, error) {
-	log.Debug().Interface("metric", metric.Name).Msg("getting values for metric")
-	rows, err := db.RunSqlQuery(conn, metric.Sql)
-	var results []metrics.QueryResult
-	for rows.Next() {
-		var result metrics.QueryResult
-		if err := rows.Scan(&result.Labels, &result.Value); err != nil {
-			log.Error().Err(err).Msg("error when scanning query results")
-			return nil, err
-		}
-		results = append(results, result)
-	}
-	return results, err
+func EnsureMacros(conf config.Config, conn *sql.DB) {
+
 }

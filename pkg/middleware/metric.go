@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/flock"
 	"github.com/dbecorp/ducktheus_exporter/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
@@ -14,7 +13,7 @@ func MetricsMiddleware(conn *sql.Conn, metrics []metrics.Metric, gauges map[stri
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, metric := range metrics {
 			// Get results from DuckDB database
-			results, err := flock.RunMetric(conn, metric)
+			results, err := metric.MaterializeWithConnection(conn)
 			// Get corresponding prom collector
 			gauge := gauges[metric.Name]
 			for _, r := range results {

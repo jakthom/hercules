@@ -95,7 +95,19 @@ func (m *Metric) AsGaugeVec() *prometheus.GaugeVec {
 	return v
 }
 
-// TODO - Support other metric types!!
+func (m *Metric) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
+	rows, err := db.RunSqlQuery(conn, m.Sql)
+	var results []QueryResult
+	for rows.Next() {
+		var result QueryResult
+		if err := rows.Scan(&result.Labels, &result.Value); err != nil {
+			log.Error().Err(err).Msg("error when scanning query results")
+			return nil, err
+		}
+		results = append(results, result)
+	}
+	return results, err
+}
 
 type QueryResult struct {
 	Value  float64
@@ -113,6 +125,14 @@ func (qr *QueryResult) StringifiedLabels() map[string]string {
 	return r
 }
 
-type CounterQueryResult QueryResult
-type GuageQueryResult QueryResult
+type GaugeMetricDefinition Metric
+type GaugeQueryResult QueryResult
+
+type SummaryMetricDefinition Metric
 type SummaryQueryResult QueryResult
+
+type CounterMetricDefinition Metric
+type CounterQueryResult QueryResult
+
+type HistogramMetricDefinition Metric
+type HistogramQueryResult QueryResult
