@@ -19,25 +19,8 @@ const (
 	SummaryMetricType   MetricType = "summary"
 )
 
-type Metric struct {
-	Name    string     `json:"name"`
-	Enabled bool       `json:"enabled"`
-	Type    MetricType `json:"type"`
-	Help    string     `json:"help"`
-	Sql     db.Sql     `json:"sql"`
-	Labels  []string   `json:"labels"`
-}
-
-func (m *Metric) AsGaugeVec() *prometheus.GaugeVec {
-	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: m.Name,
-		Help: m.Help,
-	}, m.Labels)
-	return v
-}
-
-func (m *Metric) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
-	rows, err := db.RunSqlQuery(conn, m.Sql)
+func materializeMetric(conn *sql.Conn, sql db.Sql) ([]QueryResult, error) {
+	rows, err := db.RunSqlQuery(conn, sql)
 	var results []QueryResult
 	for rows.Next() {
 		var result QueryResult
@@ -48,6 +31,15 @@ func (m *Metric) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error
 		results = append(results, result)
 	}
 	return results, err
+}
+
+type Metric struct {
+	Name    string     `json:"name"`
+	Enabled bool       `json:"enabled"`
+	Type    MetricType `json:"type"`
+	Help    string     `json:"help"`
+	Sql     db.Sql     `json:"sql"`
+	Labels  []string   `json:"labels"`
 }
 
 type QueryResult struct {
@@ -67,6 +59,27 @@ func (qr *QueryResult) StringifiedLabels() map[string]string {
 }
 
 type GaugeMetricDefinition Metric
+
+func (m *GaugeMetricDefinition) AsGaugeVec() *prometheus.GaugeVec {
+	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: m.Name,
+		Help: m.Help,
+	}, m.Labels)
+	return v
+}
+
+func (m *GaugeMetricDefinition) AsGauge() *prometheus.Gauge {
+	v := prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: m.Name,
+		Help: m.Help,
+	})
+	return &v
+}
+
+func (m *GaugeMetricDefinition) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
+	return materializeMetric(conn, m.Sql)
+}
+
 type GaugeQueryResult QueryResult
 
 type SummaryMetricDefinition Metric
@@ -77,3 +90,10 @@ type CounterQueryResult QueryResult
 
 type HistogramMetricDefinition Metric
 type HistogramQueryResult QueryResult
+
+type MetricDefinitions struct {
+	Gauge     []GaugeMetricDefinition     `json:"gauge"`
+	Counter   []CounterMetricDefinition   `json:"counter"`
+	Summary   []SummaryMetricDefinition   `json:"summary"`
+	Histogram []HistogramMetricDefinition `json:"histogram"`
+}

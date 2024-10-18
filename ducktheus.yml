@@ -23,62 +23,63 @@ sources:
     refreshIntervalSeconds: 1000
 
 metrics:
-  - name: one_one_one_one
-    help: Testing the one() macro
-    enabled: true
-    sql: select struct_pack(user := 'yo') as labels, one();
-    labels:
-      - user
+  gauge:
+    - name: one_one_one_one
+      help: Testing the one() macro
+      enabled: true
+      sql: select struct_pack(user := 'yo') as labels, one();
+      labels:
+        - user
 
-  - name: two_two_two_two
-    help: Testing the two() macro
-    enabled: true
-    sql: select struct_pack(user := 'yeeee') as labels, two();
-    labels:
-      - user
+    - name: two_two_two_two
+      help: Testing the two() macro
+      enabled: true
+      sql: select struct_pack(user := 'yeeee') as labels, two();
+      labels:
+        - user
 
-  - name: queries_this_week_total
-    help: Queries this week total, by user and warehouse
-    enabled: true
-    sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, count(*) as value from snowflake_query_history group by 1;
-    labels:
-      - user
-      - warehouse
+    - name: queries_this_week_total
+      help: Queries this week total, by user and warehouse
+      enabled: true
+      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, count(*) as value from snowflake_query_history group by 1;
+      labels:
+        - user
+        - warehouse
 
-  - name: avg_query_duration_seconds
-    help: The average query duration for a particular user, using a particular warehouse
-    enabled: true
-    sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by 1;
-    labels:
-      - user
-      - warehouse
+    - name: avg_query_duration_seconds
+      help: The average query duration for a particular user, using a particular warehouse
+      enabled: true
+      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by 1;
+      labels:
+        - user
+        - warehouse
 
-  - name: table_operations_count
-    help: The number of operations on each table over the last week
-    enabled: true
-    sql: select struct_pack(user := user_name, query_type := query_type) as labels, count(*) as value from snowflake_query_history group by 1;
-    labels:
-      - user
-      - query_type
+    - name: table_operations_count
+      help: The number of operations on each table over the last week
+      enabled: true
+      sql: select struct_pack(user := user_name, query_type := query_type) as labels, count(*) as value from snowflake_query_history group by 1;
+      labels:
+        - user
+        - query_type
 
-  - name: avg_virtual_warehouse_spill_to_local_storage_bytes
-    help: The average bytes spilled to disk for queries on a specific warehouse
-    enabled: true
-    sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_LOCAL_STORAGE) as value from snowflake_query_history group by 1;
-    labels:
-      - user
-      - warehouse
+    - name: avg_virtual_warehouse_spill_to_local_storage_bytes
+      help: The average bytes spilled to disk for queries on a specific warehouse
+      enabled: true
+      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_LOCAL_STORAGE) as value from snowflake_query_history group by 1;
+      labels:
+        - user
+        - warehouse
 
-  - name: avg_virtual_warehouse_spill_to_remote_storage_bytes
-    help: The average bytes spilled to remote disk for queries on a specific warehouse
-    enabled: true
-    sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_REMOTE_STORAGE) as value from snowflake_query_history group by 1;
-    labels:
-      - user
-      - warehouse
+    - name: avg_virtual_warehouse_spill_to_remote_storage_bytes
+      help: The average bytes spilled to remote disk for queries on a specific warehouse
+      enabled: true
+      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_REMOTE_STORAGE) as value from snowflake_query_history group by 1;
+      labels:
+        - user
+        - warehouse
 
-  - name: united_states_zip_codes_total
-    help: The number of US zip codes
-    sql: select struct_pack(state := state) as labels, count(*) as value from united_states_zip_codes group by 1;
-    labels:
-      - state
+    - name: united_states_zip_codes_total
+      help: The number of US zip codes
+      sql: select struct_pack(state := state) as labels, count(*) as value from united_states_zip_codes group by 1;
+      labels:
+        - state

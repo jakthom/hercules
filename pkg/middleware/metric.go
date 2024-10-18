@@ -9,18 +9,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func MetricsMiddleware(conn *sql.Conn, metrics []metrics.Metric, gauges map[string]*prometheus.GaugeVec, next http.Handler) http.Handler {
+func MetricsMiddleware(conn *sql.Conn, metricDefinitions metrics.MetricDefinitions, gauges map[string]*prometheus.GaugeVec, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for _, metric := range metrics {
+		for _, gauge := range metricDefinitions.Gauge {
 			// Get results from DuckDB database
-			results, err := metric.MaterializeWithConnection(conn)
+			results, err := gauge.MaterializeWithConnection(conn)
 			// Get corresponding prom collector
-			gauge := gauges[metric.Name]
+			g := gauges[gauge.Name]
 			for _, r := range results {
-				gauge.With(r.StringifiedLabels()).Set(r.Value)
+				g.With(r.StringifiedLabels()).Set(r.Value)
 			}
 			if err != nil {
-				log.Error().Err(err).Interface("metric", metric.Name).Msg("could not calculate metric")
+				log.Error().Err(err).Interface("metric", gauge.Name).Msg("could not calculate metric")
 			}
 		}
 		next.ServeHTTP(w, r)

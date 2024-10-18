@@ -5,12 +5,12 @@ import (
 )
 
 type Macro struct {
-	Name string `json:"name"`
+	Name string `json:"name"` // Really a no-op. Probably overkill. Nice for future reasons.
 	Sql  Sql    `json:"sql"`
 }
 
 func (m *Macro) CreateOrReplaceSql() Sql {
-	// TODO -> allow "create macro" and "create or replace macro" to be included in the sql statement
+	// TODO -> be more flexible with how these are handled - allow "create", "create or replace", nameless macros, etc.
 	return Sql(m.Sql)
 }
 
