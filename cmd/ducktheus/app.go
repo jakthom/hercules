@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"net/http"
 	"os"
@@ -15,7 +14,6 @@ import (
 	"github.com/dbecorp/ducktheus_exporter/pkg/flock"
 	metrics "github.com/dbecorp/ducktheus_exporter/pkg/metrics"
 	"github.com/dbecorp/ducktheus_exporter/pkg/middleware"
-	"github.com/marcboeker/go-duckdb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -42,51 +40,12 @@ func (d *DuckTheus) configure() {
 }
 
 func (d *DuckTheus) initializeDuckDB() {
-	connector, err := duckdb.NewConnector("ducktheus.db", func(execer driver.ExecerContext) error {
-		var err error
-		bootQueries := []string{}
-
-		for _, query := range bootQueries {
-			_, err = execer.ExecContext(context.Background(), query, nil)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		log.Fatal().Err(err).Msg("could not initialize duckdb database")
-	}
-	db := sql.OpenDB(connector)
-	conn, err := db.Conn(context.Background())
-	if err != nil {
-		log.Fatal().Err(err).Msg("could not initialize duckdb connection")
-	}
-	defer db.Close()
-	d.conn = conn
-	d.db = db
+	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
 func (d *DuckTheus) initializeSources() {
-	// For every source start a timer that refreshes said source
 	for _, source := range d.sources {
-		// Ensure source is populated
-		flock.RefreshSource(d.conn, source)
-		// Start a ticker to continuously update source on the predefined interval
-		ticker := time.NewTicker(time.Duration(source.RefreshIntervalSeconds) * time.Second)
-		done := make(chan bool)
-		go func() {
-			for {
-				select {
-				case <-done:
-					return
-				case <-ticker.C:
-					go func(conn *sql.Conn, source metrics.MetricSource) error {
-						return flock.RefreshSource(conn, source)
-					}(d.conn, source)
-				}
-			}
-		}()
+		source.InitializeWithConnection(d.conn)
 	}
 }
 
