@@ -93,7 +93,7 @@ func (d *DuckTheus) Initialize() {
 	log.Debug().Msg("initializing ducktheus")
 	d.configure()
 	d.initializeDuckDB()
-	d.initializeSources()
+	// d.initializeSources()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 
