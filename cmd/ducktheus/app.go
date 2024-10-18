@@ -66,27 +66,24 @@ func (d *DuckTheus) initializeDuckDB() {
 func (d *DuckTheus) initializeSources() {
 	d.sources = metric.GetMetricSourceDefinitions()
 	// For every source start a timer that refreshes said source
-	// for _, source := range d.sources {
-	// 	ticker := time.NewTicker(time.Duration(source.RefreshInterval) * time.Second)
-	// 	done := make(chan bool)
-	// 	go func() {
-	// 		for {
-	// 			select {
-	// 			case <-done:
-	// 				return
-	// 			case <-ticker.C:
-	// 				fmt.Println("refreshing source: ", source.Name+" with sql: "+string(source.CreateOrReplaceSql()))
-	// 			}
-	// 		}
-	// 	}()
-	// }
-	// util.Pprint(d.sources)
-}
-
-func (d *DuckTheus) populateSources() {
 	for _, source := range d.sources {
-		sql := source.CreateOrReplaceSql()
-		flock.RunQuery(d.conn, string(sql))
+		// Ensure source is populated
+		flock.RefreshSource(d.conn, source)
+		// Start a ticker to continuously update source on the predefined interval
+		ticker := time.NewTicker(time.Duration(source.RefreshInterval) * time.Second)
+		done := make(chan bool)
+		go func() {
+			for {
+				select {
+				case <-done:
+					return
+				case <-ticker.C:
+					go func(conn *sql.Conn, source metric.MetricSource) error {
+						return flock.RefreshSource(conn, source)
+					}(d.conn, source)
+				}
+			}
+		}()
 	}
 }
 
@@ -95,7 +92,6 @@ func (d *DuckTheus) Initialize() {
 	d.configure()
 	d.initializeDuckDB()
 	d.initializeSources()
-	d.populateSources()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 

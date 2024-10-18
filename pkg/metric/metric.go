@@ -60,13 +60,13 @@ func GetMetricSourceDefinitions() []MetricSource {
 		Name:            "snowflake_query_history",
 		Type:            ParquetFileSourceType,
 		Source:          sourceFile,
-		RefreshInterval: 1,
+		RefreshInterval: 20,
 	}
 	source2 := MetricSource{
 		Name:            "snowflake_login_history",
 		Type:            ParquetFileSourceType,
 		Source:          "s3://okta-snowflake/query_history.parquet",
-		RefreshInterval: 3,
+		RefreshInterval: 10,
 	}
 	return []MetricSource{
 		source,

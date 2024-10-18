@@ -17,11 +17,13 @@ const (
 	// Default Config Values
 	DEFAULT_DEBUG bool   = false
 	DEFAULT_PORT  string = "9999"
+	DEFAULT_DB    string = "ducktheus.db"
 )
 
 type Config struct {
 	Debug bool   `json:"debug"`
 	Port  string `json:"port"`
+	Db    string `json:"db"`
 }
 
 func (c *Config) Validate() error {
@@ -46,6 +48,7 @@ func GetConfig() (Config, error) {
 		log.Error().Stack().Err(err).Msg("could not read config - using defaults")
 		config.Debug = DEFAULT_DEBUG
 		config.Port = DEFAULT_PORT
+		config.Db = DEFAULT_DB
 	}
 	if err := viper.Unmarshal(config); err != nil {
 		log.Error().Stack().Err(err)
