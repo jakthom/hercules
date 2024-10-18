@@ -7,12 +7,7 @@ db: ducktheus.db
 sources:
   - name: snowflake_query_history
     type: parquet
-    source: s3://okta-snowflake/query_history.parquet
-    refreshIntervalSeconds: 300
-
-  - name: snowflake_login_history
-    type: parquet
-    source: s3://okta-snowflake/query_history.parquet
+    source: assets/snowflake_query_history.parquet
     refreshIntervalSeconds: 300
 
   - name: united_states_zip_codes

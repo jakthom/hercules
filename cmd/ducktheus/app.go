@@ -97,7 +97,7 @@ func (d *DuckTheus) initializeRegistry() {
 
 	for _, metric := range d.metrics {
 		gauge := metric.AsGaugeVec()
-		log.Debug().Interface("gauge", metric.Name).Msg("registering gauge with registry")
+		log.Trace().Interface("gauge", metric.Name).Msg("registering gauge with registry")
 		prometheus.MustRegister(gauge)
 		gauges[metric.Name] = gauge
 	}
