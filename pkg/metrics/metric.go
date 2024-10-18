@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"fmt"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Sql string
@@ -51,6 +53,22 @@ type Metric struct {
 	Type    MetricType `json:"type"`
 	Help    string     `json:"help"`
 	Sql     Sql        `json:"sql"`
+}
+
+func (m *Metric) AsCollector() prometheus.Collector {
+	switch m.Type {
+	// TODO!! SUPPORT ALL COLLECTOR TYPES!
+	case GaugeMetricType:
+		return prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: m.Name,
+			Help: m.Help,
+		})
+	default:
+		return prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: m.Name,
+			Help: m.Help,
+		})
+	}
 }
 
 type QueryResult struct {

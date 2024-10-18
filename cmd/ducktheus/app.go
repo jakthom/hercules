@@ -25,11 +25,13 @@ import (
 var VERSION string
 
 type DuckTheus struct {
-	config  config.Config
-	db      *sql.DB
-	conn    *sql.Conn
-	sources []metrics.MetricSource
-	metrics []metrics.Metric
+	config   config.Config
+	db       *sql.DB
+	conn     *sql.Conn
+	registry *prometheus.Registry
+	sources  []metrics.MetricSource
+	metrics  []metrics.Metric
+	gauges   map[string]prometheus.Gauge
 }
 
 func (d *DuckTheus) configure() {
@@ -89,11 +91,20 @@ func (d *DuckTheus) initializeSources() {
 	}
 }
 
+func (d *DuckTheus) initializeRegistry() {
+	log.Debug().Msg("intializing registry")
+	d.registry = prometheus.NewRegistry()
+	for _, metric := range d.metrics {
+		collector := metric.AsCollector()
+		d.registry.MustRegister(metric.AsCollector())
+	}
+}
+
 func (d *DuckTheus) Initialize() {
 	log.Debug().Msg("initializing ducktheus")
 	d.configure()
 	d.initializeDuckDB()
-	// d.initializeSources()
+	d.initializeRegistry()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 
