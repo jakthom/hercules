@@ -26,7 +26,7 @@ type DuckTheus struct {
 	config  config.Config
 	db      *sql.DB
 	conn    *sql.Conn
-	sources []metrics.MetricSource
+	sources []metrics.Source
 	metrics []metrics.Metric
 	gauges  map[string]*prometheus.GaugeVec
 }

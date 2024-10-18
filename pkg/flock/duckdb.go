@@ -12,15 +12,16 @@ import (
 
 func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	connector, err := duckdb.NewConnector(conf.Db, func(execer driver.ExecerContext) error {
-		var err error
-		bootQueries := []string{}
+		// STUB OUT A SPOT FOR BOOT QUERIES
+		// var err error
+		// bootQueries := []string{}
 
-		for _, query := range bootQueries {
-			_, err = execer.ExecContext(context.Background(), query, nil)
-			if err != nil {
-				return err
-			}
-		}
+		// for _, query := range bootQueries {
+		// 	_, err = execer.ExecContext(context.Background(), query, nil)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
 		return nil
 	})
 	if err != nil {
@@ -31,10 +32,13 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not initialize duckdb connection")
 	}
+	ensureMacros(conf, conn)
 	defer db.Close()
 	return db, conn
 }
 
-func EnsureMacros(conf config.Config, conn *sql.DB) {
-
+func ensureMacros(conf config.Config, conn *sql.Conn) {
+	for _, macro := range conf.Macros {
+		macro.EnsureWithConnection(conn)
+	}
 }
