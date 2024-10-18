@@ -5,7 +5,8 @@ import (
 )
 
 type Macro struct {
-	Sql Sql `json:"sql"`
+	Name string `json:"name"`
+	Sql  Sql    `json:"sql"`
 }
 
 func (m *Macro) CreateOrReplaceSql() Sql {
