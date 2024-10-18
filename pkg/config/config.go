@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbecorp/ducktheus_exporter/pkg/db"
 	"github.com/dbecorp/ducktheus_exporter/pkg/metrics"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -25,6 +26,7 @@ type Config struct {
 	Debug   bool                   `json:"debug"`
 	Port    string                 `json:"port"`
 	Db      string                 `json:"db"`
+	Macros  []db.Macro             `json:"macros"`
 	Sources []metrics.MetricSource `json:"sources"`
 	Metrics []metrics.Metric       `json:"metrics"`
 }

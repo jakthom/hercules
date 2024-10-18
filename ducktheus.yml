@@ -4,6 +4,10 @@ debug: false
 port: 9100
 db: ducktheus.db
 
+macros:
+  - name: plus_one
+    sql: CREATE MACRO one() AS (SELECT 1);
+
 sources:
   - name: snowflake_query_history
     type: parquet
@@ -58,7 +62,6 @@ metrics:
 
   - name: united_states_zip_codes_total
     help: The number of US zip codes
-    type: gauge
     sql: select struct_pack(state := state) as labels, count(*) as value from united_states_zip_codes group by 1;
     labels:
       - state
