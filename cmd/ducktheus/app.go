@@ -13,7 +13,8 @@ import (
 
 	"github.com/dbecorp/ducktheus_exporter/pkg/config"
 	"github.com/dbecorp/ducktheus_exporter/pkg/flock"
-	"github.com/dbecorp/ducktheus_exporter/pkg/metric"
+	metrics "github.com/dbecorp/ducktheus_exporter/pkg/metrics"
+	"github.com/dbecorp/ducktheus_exporter/pkg/middleware"
 	"github.com/marcboeker/go-duckdb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -27,14 +28,16 @@ type DuckTheus struct {
 	config  config.Config
 	db      *sql.DB
 	conn    *sql.Conn
-	sources []metric.MetricSource
-	metrics []metric.Metric
+	sources []metrics.MetricSource
+	metrics []metrics.Metric
 }
 
 func (d *DuckTheus) configure() {
 	log.Debug().Msg("configuring ducktheus")
 	// Load application config
 	d.config, _ = config.GetConfig()
+	d.sources = d.config.Sources
+	d.metrics = d.config.Metrics
 }
 
 func (d *DuckTheus) initializeDuckDB() {
@@ -64,13 +67,12 @@ func (d *DuckTheus) initializeDuckDB() {
 }
 
 func (d *DuckTheus) initializeSources() {
-	d.sources = metric.GetMetricSourceDefinitions()
 	// For every source start a timer that refreshes said source
 	for _, source := range d.sources {
 		// Ensure source is populated
 		flock.RefreshSource(d.conn, source)
 		// Start a ticker to continuously update source on the predefined interval
-		ticker := time.NewTicker(time.Duration(source.RefreshInterval) * time.Second)
+		ticker := time.NewTicker(time.Duration(source.RefreshIntervalSeconds) * time.Second)
 		done := make(chan bool)
 		go func() {
 			for {
@@ -78,7 +80,7 @@ func (d *DuckTheus) initializeSources() {
 				case <-done:
 					return
 				case <-ticker.C:
-					go func(conn *sql.Conn, source metric.MetricSource) error {
+					go func(conn *sql.Conn, source metrics.MetricSource) error {
 						return flock.RefreshSource(conn, source)
 					}(d.conn, source)
 				}
@@ -98,7 +100,7 @@ func (d *DuckTheus) Initialize() {
 func (d *DuckTheus) Run() {
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove all the golang node defaults
-	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metrics, promhttp.Handler()))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,

@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbecorp/ducktheus_exporter/pkg/metrics"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -21,9 +22,11 @@ const (
 )
 
 type Config struct {
-	Debug bool   `json:"debug"`
-	Port  string `json:"port"`
-	Db    string `json:"db"`
+	Debug   bool                   `json:"debug"`
+	Port    string                 `json:"port"`
+	Db      string                 `json:"db"`
+	Sources []metrics.MetricSource `json:"sources"`
+	Metrics []metrics.Metric       `json:"metrics"`
 }
 
 func (c *Config) Validate() error {

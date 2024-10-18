@@ -3,3 +3,26 @@ version: 1
 debug: false
 port: 9100
 db: ducktheus.db
+
+sources:
+  - name: snowflake_query_history
+    type: parquet
+    source: s3://okta-snowflake/query_history.parquet
+    refreshIntervalSeconds: 300
+  - name: snowflake_login_history
+    type: parquet
+    source: s3://okta-snowflake/query_history.parquet
+    refreshIntervalSeconds: 300
+
+metrics:
+  - name: queries_this_week_total
+    type: gauge
+    help: Queries this week total, by user and warehouse
+    enabled: true
+    sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, count(*) as value from snowflake_query_history group by 1;
+
+  - name: avg_query_duration_seconds
+    type: gauge
+    help: The average query duration for a particular user, using a particular warehouse
+    enabled: true
+    sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by 1;
