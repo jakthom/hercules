@@ -39,7 +39,7 @@ func main() {
 	// Create new metrics and register them using the custom registry.
 	m := NewMetrics(reg)
 	// Set values for the new created metrics.
-	m.cpuTemp
+	m.cpuTemp.Set(65.3)
 	m.hdFailures.With(prometheus.Labels{"device": "/dev/sda"}).Inc()
 
 	// Expose metrics and custom registry via an HTTP server

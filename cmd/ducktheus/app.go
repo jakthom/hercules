@@ -25,13 +25,12 @@ import (
 var VERSION string
 
 type DuckTheus struct {
-	config   config.Config
-	db       *sql.DB
-	conn     *sql.Conn
-	registry *prometheus.Registry
-	sources  []metrics.MetricSource
-	metrics  []metrics.Metric
-	gauges   map[string]prometheus.Gauge
+	config  config.Config
+	db      *sql.DB
+	conn    *sql.Conn
+	sources []metrics.MetricSource
+	metrics []metrics.Metric
+	gauges  map[string]*prometheus.GaugeVec
 }
 
 func (d *DuckTheus) configure() {
@@ -93,17 +92,23 @@ func (d *DuckTheus) initializeSources() {
 
 func (d *DuckTheus) initializeRegistry() {
 	log.Debug().Msg("intializing registry")
-	d.registry = prometheus.NewRegistry()
+
+	gauges := make(map[string]*prometheus.GaugeVec)
+
 	for _, metric := range d.metrics {
-		collector := metric.AsCollector()
-		d.registry.MustRegister(metric.AsCollector())
+		gauge := metric.AsGaugeVec()
+		log.Debug().Interface("gauge", metric.Name).Msg("registering gauge with registry")
+		prometheus.MustRegister(gauge)
+		gauges[metric.Name] = gauge
 	}
+	d.gauges = gauges
 }
 
 func (d *DuckTheus) Initialize() {
 	log.Debug().Msg("initializing ducktheus")
 	d.configure()
 	d.initializeDuckDB()
+	d.initializeSources()
 	d.initializeRegistry()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
@@ -111,7 +116,7 @@ func (d *DuckTheus) Initialize() {
 func (d *DuckTheus) Run() {
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove all the golang node defaults
-	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metrics, promhttp.Handler()))
+	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metrics, d.gauges, promhttp.Handler()))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,

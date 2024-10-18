@@ -9,20 +9,37 @@ sources:
     type: parquet
     source: s3://okta-snowflake/query_history.parquet
     refreshIntervalSeconds: 300
+
   - name: snowflake_login_history
     type: parquet
     source: s3://okta-snowflake/query_history.parquet
     refreshIntervalSeconds: 300
 
+  - name: united_states_zip_codes
+    type: sql
+    source: select * from read_csv_auto('https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv')
+    refreshIntervalSeconds: 1000
+
 metrics:
   - name: queries_this_week_total
-    type: gauge
     help: Queries this week total, by user and warehouse
     enabled: true
     sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, count(*) as value from snowflake_query_history group by 1;
+    labels:
+      - user
+      - warehouse
 
   - name: avg_query_duration_seconds
-    type: gauge
     help: The average query duration for a particular user, using a particular warehouse
     enabled: true
     sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by 1;
+    labels:
+      - user
+      - warehouse
+
+  - name: united_states_zip_codes_total
+    help: The number of US zip codes
+    type: gauge
+    sql: select struct_pack(state := state) as labels, count(*) as value from united_states_zip_codes group by 1;
+    labels:
+      - state

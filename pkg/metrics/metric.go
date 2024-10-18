@@ -53,23 +53,18 @@ type Metric struct {
 	Type    MetricType `json:"type"`
 	Help    string     `json:"help"`
 	Sql     Sql        `json:"sql"`
+	Labels  []string   `json:"labels"`
 }
 
-func (m *Metric) AsCollector() prometheus.Collector {
-	switch m.Type {
-	// TODO!! SUPPORT ALL COLLECTOR TYPES!
-	case GaugeMetricType:
-		return prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: m.Name,
-			Help: m.Help,
-		})
-	default:
-		return prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: m.Name,
-			Help: m.Help,
-		})
-	}
+func (m *Metric) AsGaugeVec() *prometheus.GaugeVec {
+	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: m.Name,
+		Help: m.Help,
+	}, m.Labels)
+	return v
 }
+
+// TODO - Support other metric types!!
 
 type QueryResult struct {
 	Value  float64
