@@ -2,3 +2,4 @@ version: 1
 
 debug: false
 port: 9100
+db: ducktheus.db
