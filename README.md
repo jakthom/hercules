@@ -11,6 +11,7 @@ A DuckDB-powered Prometheus Exporter
 
 ## DuckDB stuff
     - Support ATTACH-ing s3/gcs-based databases ❌
+    - Support duckdb secrets registration ❌
 
 ## Sources
     - Refresh on startup ✅
@@ -21,9 +22,9 @@ A DuckDB-powered Prometheus Exporter
 ## Metrics
     - Support all Prometheus metric types
         - gauges ✅
-        - histograms ❌
+        - histograms ✅
         - counters ❌
-        - summaries ❌
+        - summaries ✅
     - Support named path groupings ❌
     - Support push-based OTEL ❌
 
@@ -33,9 +34,14 @@ A DuckDB-powered Prometheus Exporter
 ## Secrets
     - Support passing env-based secrets ❌
 
+## Developer niceties
+    - jsonschema-based config (validation, auto-complete) ❌
+    - 
+
+
 ## Distribution stuff
     - Build docker and publish to ghcr.io ❌
     - Build binaries and publish to package registry ❌
-    - Tests and badge
-    - Lint and badge
+    - Tests and badge ❌
+    - Lint and badge ❌
     - Codespaces ❌
