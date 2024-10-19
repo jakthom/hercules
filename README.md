@@ -29,7 +29,7 @@ A DuckDB-powered Prometheus Exporter
         - gauges (no labels) ❌
         - histograms (vec) ✅
         - histograms (no labels) ❌
-        - counters (vec) ❌
+        - counters (vec) 🚨 NOTE!!!!! Counters continously auto-increment. They either need to be reset (unregistered/registered) on each request, or explicitly unsupported for now. TBD. They work, but not properly.
         - counters (no labels) ❌
         - summaries (vec) ✅
         - summaries (no labels) ❌
