@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/dbecorp/ducktheus_exporter/pkg/db"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
 
@@ -37,4 +38,11 @@ type MetricDefinitions struct {
 	Counter   []CounterMetricDefinition   `json:"counter"`
 	Summary   []SummaryMetricDefinition   `json:"summary"`
 	Histogram []HistogramMetricDefinition `json:"histogram"`
+}
+
+type MetricRegistry struct {
+	Gauge     []*prometheus.GaugeVec
+	Counter   []*prometheus.CounterVec
+	Summary   []*prometheus.SummaryVec
+	Histogram []*prometheus.HistogramVec
 }
