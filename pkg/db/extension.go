@@ -47,6 +47,6 @@ func (e *CommunityExtension) EnsureWithConnection(conn *sql.Conn) {
 }
 
 type Extensions struct {
-	Core      []string
-	Community []string
+	Core      []CoreExtension
+	Community []CommunityExtension
 }

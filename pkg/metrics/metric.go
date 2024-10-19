@@ -19,6 +19,20 @@ const (
 	SummaryMetricType   MetricType = "summary"
 )
 
+type Metric interface {
+	Name() string
+	Enabled() bool
+	Type() MetricType
+	Help() string
+	Sql() db.Sql
+	Labels() []string
+	AsBase() prometheus.Collector
+	AsVec() prometheus.Collector
+	Reregister() error
+	PrometheusCollector() *prometheus.Collector
+	MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error)
+}
+
 func materializeMetric(conn *sql.Conn, sql db.Sql) ([]QueryResult, error) {
 	rows, err := db.RunSqlQuery(conn, sql)
 	var results []QueryResult

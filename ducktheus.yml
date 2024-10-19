@@ -10,9 +10,6 @@ extensions:
     - name: vss
     - name: icu
     - name: fts
-    - name: arrow
-    - name: delta
-    - name: iceberg
 
   community:
     - name: bigquery # Read from BigQuery
