@@ -14,6 +14,7 @@ import (
 	"github.com/dbecorp/ducktheus_exporter/pkg/flock"
 	metrics "github.com/dbecorp/ducktheus_exporter/pkg/metrics"
 	"github.com/dbecorp/ducktheus_exporter/pkg/middleware"
+	"github.com/dbecorp/ducktheus_exporter/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -29,6 +30,7 @@ type DuckTheus struct {
 	sources           []metrics.Source
 	metricDefinitions metrics.MetricDefinitions
 	gauges            map[string]*prometheus.GaugeVec
+	histograms        map[string]*prometheus.HistogramVec
 }
 
 func (d *DuckTheus) configure() {
@@ -50,10 +52,10 @@ func (d *DuckTheus) initializeSources() {
 }
 
 func (d *DuckTheus) initializeRegistry() {
+	// TODO - there's a better way to do and store this. It is sloppy right now.
 	// Initialize all Gauge metrics
 	log.Trace().Msg("initializing gauges")
 	gauges := make(map[string]*prometheus.GaugeVec)
-
 	for _, gauge := range d.metricDefinitions.Gauge {
 		g := gauge.AsGaugeVec()
 		log.Trace().Interface("gauge", gauge.Name).Msg("registering gauge with registry")
@@ -61,6 +63,17 @@ func (d *DuckTheus) initializeRegistry() {
 		gauges[gauge.Name] = g
 	}
 	d.gauges = gauges
+	// Initialize all Histogram metrics
+	log.Trace().Msg("initializing gauges")
+	histograms := make(map[string]*prometheus.HistogramVec)
+	for _, histogram := range d.metricDefinitions.Histogram {
+		h := histogram.AsHistogramVec()
+		log.Trace().Interface("histogram", histogram.Name).Msg("registering histogram with registry")
+		prometheus.MustRegister(h)
+		histograms[histogram.Name] = h
+	}
+	d.histograms = histograms
+	util.Pprint(d.config.Metrics)
 }
 
 func (d *DuckTheus) Initialize() {
@@ -75,7 +88,7 @@ func (d *DuckTheus) Initialize() {
 func (d *DuckTheus) Run() {
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove all the golang node defaults
-	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricDefinitions, d.gauges, promhttp.Handler()))
+	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricDefinitions, d.gauges, d.histograms, promhttp.Handler()))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,

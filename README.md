@@ -21,8 +21,8 @@ A DuckDB-powered Prometheus Exporter
 ## Metrics
     - Support all Prometheus metric types
         - gauges ✅
-        - counters ❌
         - histograms ❌
+        - counters ❌
         - summaries ❌
     - Support named path groupings ❌
     - Support push-based OTEL ❌
