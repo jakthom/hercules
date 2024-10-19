@@ -4,6 +4,21 @@ debug: false
 port: 9100
 db: ducktheus.db
 
+extensions:
+  core:
+    - name: inet
+    - name: vss
+    - name: icu
+    - name: fts
+
+  community:
+    - name: bigquery # Read from BigQuery
+    - name: chsql # Clickhouse macros and functions
+    - name: lindel # Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
+    - name: prql # Pipelined Relational Query Language
+    - name: sheetreader # Turn XLSX files into metrics
+    - name: tarfs # Glob, open and read files within .tar archives
+
 macros:
   - name: one
   - sql: create or replace macro one() AS (SELECT 1);

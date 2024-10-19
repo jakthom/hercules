@@ -1,4 +1,4 @@
-package flock
+package duckdb
 
 import (
 	"context"
@@ -33,6 +33,7 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 		log.Fatal().Err(err).Msg("could not initialize duckdb connection")
 	}
 	ensureMacros(conf, conn)
+	ensureExtensions(conf, conn)
 	defer db.Close()
 	return db, conn
 }
@@ -40,5 +41,14 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 func ensureMacros(conf config.Config, conn *sql.Conn) {
 	for _, macro := range conf.Macros {
 		macro.EnsureWithConnection(conn)
+	}
+}
+
+func ensureExtensions(conf config.Config, conn *sql.Conn) {
+	for _, coreExtension := range conf.Extensions.Core {
+		coreExtension.EnsureWithConnection(conn)
+	}
+	for _, communityExtension := range conf.Extensions.Community {
+		communityExtension.EnsureWithConnection(conn)
 	}
 }

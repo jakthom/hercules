@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/dbecorp/ducktheus_exporter/pkg/config"
-	"github.com/dbecorp/ducktheus_exporter/pkg/flock"
+	"github.com/dbecorp/ducktheus_exporter/pkg/duckdb"
 	metrics "github.com/dbecorp/ducktheus_exporter/pkg/metrics"
 	"github.com/dbecorp/ducktheus_exporter/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
@@ -46,7 +46,7 @@ func (d *DuckTheus) configure() {
 }
 
 func (d *DuckTheus) initializeDuckDB() {
-	d.db, d.conn = flock.InitializeDB(d.config)
+	d.db, d.conn = duckdb.InitializeDB(d.config)
 }
 
 func (d *DuckTheus) initializeSources() {
