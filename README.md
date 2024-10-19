@@ -9,6 +9,10 @@ A DuckDB-powered Prometheus Exporter
     - Metric materialization ✅
     - Support preloading DuckDB extensions ❌
 
+## Code stuff
+    - Consolidate metric definitions and metric registry ❌
+    - Interface the metrics, clean up code duplication ❌
+
 ## DuckDB stuff
     - Support ATTACH-ing s3/gcs-based databases ❌
     - Support duckdb secrets registration ❌
@@ -21,12 +25,17 @@ A DuckDB-powered Prometheus Exporter
 
 ## Metrics
     - Support all Prometheus metric types
-        - gauges ✅
-        - histograms ✅
-        - counters ❌
-        - summaries ✅
+        - gauges (vec) ✅
+        - gauges (no labels) ❌
+        - histograms (vec) ✅
+        - histograms (no labels) ❌
+        - counters (vec) ❌
+        - counters (no labels) ❌
+        - summaries (vec) ✅
+        - summaries (no labels) ❌
     - Support named path groupings ❌
     - Support push-based OTEL ❌
+    - Support propagating labels from config ❌
 
 ## Config/Functionality
     - Macros ✅
@@ -36,8 +45,7 @@ A DuckDB-powered Prometheus Exporter
 
 ## Developer niceties
     - jsonschema-based config (validation, auto-complete) ❌
-    - 
-
+    - config validation (run through a local duckdb) ❌
 
 ## Distribution stuff
     - Build docker and publish to ghcr.io ❌

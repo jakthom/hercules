@@ -28,11 +28,13 @@ type DuckTheus struct {
 	conn              *sql.Conn
 	sources           []metrics.Source
 	metricDefinitions metrics.MetricDefinitions
-	metricRegistry    *metrics.MetricRegistry
+	// TODO -> use this
+	metricRegistry *metrics.MetricRegistry
 	// TODO -> Scrap these in favor of a single prometheus metric registry
 	gauges     map[string]*prometheus.GaugeVec
 	histograms map[string]*prometheus.HistogramVec
 	summaries  map[string]*prometheus.SummaryVec
+	counters   map[string]*prometheus.CounterVec
 }
 
 func (d *DuckTheus) configure() {
@@ -85,6 +87,17 @@ func (d *DuckTheus) initializeRegistry() {
 		summaries[summary.Name] = s
 	}
 	d.summaries = summaries
+
+	// Initialize all Counter metrics
+	log.Trace().Msg("initializing summary metrics")
+	counters := make(map[string]*prometheus.CounterVec)
+	for _, counter := range d.metricDefinitions.Counter {
+		c := counter.AsCounterVec()
+		log.Trace().Interface("counter", counter.Name).Msg("registering counter with registry")
+		prometheus.MustRegister(c)
+		counters[counter.Name] = c
+	}
+	d.counters = counters
 }
 
 func (d *DuckTheus) Initialize() {
@@ -101,7 +114,7 @@ func (d *DuckTheus) Run() {
 	// Remove all the golang node defaults
 	prometheus.Unregister(collectors.NewGoCollector())
 	// TODO -> Make metrics middleware signature better. Much better.
-	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricDefinitions, d.gauges, d.histograms, d.summaries, promhttp.Handler()))
+	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricDefinitions, d.gauges, d.histograms, d.summaries, d.counters, promhttp.Handler()))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,
