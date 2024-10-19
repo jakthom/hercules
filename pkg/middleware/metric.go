@@ -32,6 +32,12 @@ func MetricsMiddleware(conn *sql.Conn, metricDefinitions metrics.MetricDefinitio
 			results, err := histogram.MaterializeWithConnection(conn)
 			// Get corresponding prom collector
 			h := histograms[histogram.Name]
+
+			// DYING BUT IT'S THE ONLY WAY TO MAKE A SUMMARY GO BACK TO 0 AND REUSE THE NAME
+			prometheus.Unregister(h)
+			// OGOD THIS IS UGLY
+			h = histogram.AsHistogramVec()
+			prometheus.Register(h)
 			for _, r := range results {
 				h.With(r.StringifiedLabels()).Observe(r.Value)
 			}
@@ -45,6 +51,11 @@ func MetricsMiddleware(conn *sql.Conn, metricDefinitions metrics.MetricDefinitio
 			results, err := summary.MaterializeWithConnection(conn)
 			// Get corresponding prom collector
 			s := summaries[summary.Name]
+			// DYING BUT IT'S THE ONLY WAY TO MAKE A SUMMARY GO BACK TO 0 AND REUSE THE NAME
+			prometheus.Unregister(s)
+			// OGOD THIS IS UGLY
+			s = summary.AsSummaryVec()
+			prometheus.Register(s)
 			for _, r := range results {
 				s.With(r.StringifiedLabels()).Observe(r.Value)
 			}
@@ -58,6 +69,13 @@ func MetricsMiddleware(conn *sql.Conn, metricDefinitions metrics.MetricDefinitio
 			results, err := counter.MaterializeWithConnection(conn)
 			// Get corresponding prom collector
 			c := counters[counter.Name]
+			// DYING BUT IT'S THE ONLY WAY TO MAKE A COUNTER GO BACK TO 0 AND REUSE THE NAME
+			prometheus.Unregister(c)
+			// OGOD THIS IS UGLY
+			c = counter.AsCounterVec()
+			prometheus.Register(c)
+			// AHHHHHHHHH
+			counters[counter.Name] = c
 			for _, r := range results {
 				c.With(r.StringifiedLabels()).Inc()
 			}

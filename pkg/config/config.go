@@ -23,12 +23,13 @@ const (
 )
 
 type Config struct {
-	Debug   bool                      `json:"debug"`
-	Port    string                    `json:"port"`
-	Db      string                    `json:"db"`
-	Macros  []db.Macro                `json:"macros"`
-	Sources []metrics.Source          `json:"sources"`
-	Metrics metrics.MetricDefinitions `json:"metrics",yaml:"metrics"`
+	Debug      bool                      `json:"debug"`
+	Port       string                    `json:"port"`
+	Db         string                    `json:"db"`
+	Extensions db.Extensions             `json:"extensions"`
+	Macros     []db.Macro                `json:"macros"`
+	Sources    []metrics.Source          `json:"sources"`
+	Metrics    metrics.MetricDefinitions `json:"metrics"`
 }
 
 func (c *Config) Validate() error {

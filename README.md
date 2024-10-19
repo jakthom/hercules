@@ -7,15 +7,20 @@ A DuckDB-powered Prometheus Exporter
     - Database initialization ✅
     - Source initialization ✅
     - Metric materialization ✅
-    - Support preloading DuckDB extensions ❌
 
 ## Code stuff
     - Consolidate metric definitions and metric registry ❌
     - Interface the metrics, clean up code duplication ❌
+    - Make DEBUG flag actually work, flip log levels accordingly ❌
+    - Make middleware signature actually acceptable ❌
 
 ## DuckDB stuff
     - Support ATTACH-ing s3/gcs-based databases ❌
     - Support duckdb secrets registration ❌
+
+## Extensions
+    - Support preloading DuckDB built-in extensions ❌
+    - Support preloading DuckDB community extensions ❌
 
 ## Sources
     - Refresh on startup ✅
@@ -29,7 +34,7 @@ A DuckDB-powered Prometheus Exporter
         - gauges (no labels) ❌
         - histograms (vec) ✅
         - histograms (no labels) ❌
-        - counters (vec) 🚨 NOTE!!!!! Counters continously auto-increment. They either need to be reset (unregistered/registered) on each request, or explicitly unsupported for now. TBD. They work, but not properly.
+        - counters (vec) ✅
         - counters (no labels) ❌
         - summaries (vec) ✅
         - summaries (no labels) ❌
