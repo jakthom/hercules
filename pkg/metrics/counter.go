@@ -24,13 +24,17 @@ type CounterMetric struct {
 	Collector  *prometheus.CounterVec
 }
 
+func (c *CounterMetric) register() error {
+	collector := c.Definition.AsVec()
+	err := prometheus.Register(collector)
+	c.Collector = collector
+	return err
+}
+
 func (c *CounterMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(c.Collector)
-	collector := c.Definition.AsVec()
-	prometheus.Register(collector)
-	c.Collector = collector
-	return nil
+	return c.register()
 }
 
 func (c *CounterMetric) materializeWithConnection(conn *sql.Conn) error {
@@ -44,4 +48,12 @@ func (c *CounterMetric) materializeWithConnection(conn *sql.Conn) error {
 		return err
 	}
 	return nil
+}
+
+func NewCounterMetric(definition CounterMetricDefinition) CounterMetric {
+	metric := CounterMetric{
+		Definition: definition,
+	}
+	metric.register()
+	return metric
 }

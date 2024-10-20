@@ -32,13 +32,17 @@ type GaugeMetric struct {
 	Collector  *prometheus.GaugeVec
 }
 
+func (g *GaugeMetric) register() error {
+	collector := g.Definition.AsVec()
+	err := prometheus.Register(collector)
+	g.Collector = collector
+	return err
+}
+
 func (g *GaugeMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(g.Collector)
-	collector := g.Definition.AsVec()
-	prometheus.Register(collector)
-	g.Collector = collector
-	return nil
+	return g.register()
 }
 
 func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
@@ -52,4 +56,12 @@ func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
 		return err
 	}
 	return nil
+}
+
+func NewGaugeMetric(definition GaugeMetricDefinition) GaugeMetric {
+	metric := GaugeMetric{
+		Definition: definition,
+	}
+	metric.register()
+	return metric
 }

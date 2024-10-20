@@ -30,13 +30,17 @@ type SummaryMetric struct {
 	Collector  *prometheus.SummaryVec
 }
 
+func (s *SummaryMetric) register() error {
+	collector := s.Definition.AsVec()
+	err := prometheus.Register(collector)
+	s.Collector = collector
+	return err
+}
+
 func (s *SummaryMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(s.Collector)
-	collector := s.Definition.AsVec()
-	prometheus.Register(collector)
-	s.Collector = collector
-	return nil
+	return s.register()
 }
 
 func (s *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
@@ -52,6 +56,10 @@ func (s *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewSummaryMetricFromDefinition(d SummaryMetricDefinition) {
-
+func NewSummaryMetric(definition SummaryMetricDefinition) SummaryMetric {
+	metric := SummaryMetric{
+		Definition: definition,
+	}
+	metric.register()
+	return metric
 }

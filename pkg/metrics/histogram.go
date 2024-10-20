@@ -26,13 +26,17 @@ type HistogramMetric struct {
 	Collector  *prometheus.HistogramVec
 }
 
+func (h *HistogramMetric) register() error {
+	collector := h.Definition.AsVec()
+	err := prometheus.Register(collector)
+	h.Collector = collector
+	return err
+}
+
 func (h *HistogramMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(h.Collector)
-	collector := h.Definition.AsVec()
-	prometheus.Register(collector)
-	h.Collector = collector
-	return nil
+	return h.register()
 }
 
 func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
@@ -46,4 +50,12 @@ func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
 		return err
 	}
 	return nil
+}
+
+func NewHistogramMetric(definition HistogramMetricDefinition) HistogramMetric {
+	metric := HistogramMetric{
+		Definition: definition,
+	}
+	metric.register()
+	return metric
 }

@@ -20,6 +20,8 @@ const (
 	DEFAULT_DEBUG bool   = false
 	DEFAULT_PORT  string = "9999"
 	DEFAULT_DB    string = "ducktheus.db"
+	// Labels
+	DUCKTHEUS_NAME_LABEL = "ducktheusName"
 )
 
 type Labels map[string]string
@@ -34,6 +36,15 @@ type Config struct {
 	Macros        []db.Macro                `json:"macros"`
 	Sources       []metrics.Source          `json:"sources"`
 	Metrics       metrics.MetricDefinitions `json:"metrics"`
+}
+
+func (c *Config) GlobalLabels() Labels {
+	globalLabels := Labels{}
+	globalLabels[DUCKTHEUS_NAME_LABEL] = c.DucktheusName
+	for k, v := range c.Labels {
+		globalLabels[k] = v
+	}
+	return globalLabels
 }
 
 func (c *Config) Validate() error {
