@@ -4,8 +4,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/db"
-	"github.com/dbecorp/ducktheus_exporter/pkg/metrics"
+	"github.com/dbecorp/ducktheus/pkg/db"
+	"github.com/dbecorp/ducktheus/pkg/metrics"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
