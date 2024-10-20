@@ -35,7 +35,7 @@ func (h *HistogramMetric) reregister() error {
 	return nil
 }
 
-func (h *HistogramMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
 	h.reregister()
 	results, err := h.Definition.materializeWithConnection(conn)
 	for _, r := range results {

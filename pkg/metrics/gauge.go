@@ -41,7 +41,7 @@ func (g *GaugeMetric) reregister() error {
 	return nil
 }
 
-func (g *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
 	g.reregister()
 	results, err := g.Definition.materializeWithConnection(conn)
 	for _, r := range results {

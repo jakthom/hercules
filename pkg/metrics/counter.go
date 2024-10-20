@@ -33,7 +33,7 @@ func (c *CounterMetric) reregister() error {
 	return nil
 }
 
-func (c *CounterMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (c *CounterMetric) materializeWithConnection(conn *sql.Conn) error {
 	c.reregister()
 	results, err := c.Definition.materializeWithConnection(conn)
 	for _, r := range results {

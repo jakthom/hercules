@@ -106,7 +106,7 @@ func (mr *MetricRegistry) AddCounter(d CounterMetricDefinition) error {
 
 func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 	for _, gauge := range mr.Gauge {
-		err := gauge.MaterializeWithConnection(conn)
+		err := gauge.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
 			return err
@@ -114,7 +114,7 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 	}
 
 	for _, histogram := range mr.Histogram {
-		err := histogram.MaterializeWithConnection(conn)
+		err := histogram.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
 			return err
@@ -122,7 +122,7 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 	}
 
 	for _, summary := range mr.Summary {
-		err := summary.MaterializeWithConnection(conn)
+		err := summary.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
 			return err
@@ -130,7 +130,7 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 	}
 
 	for _, counter := range mr.Counter {
-		err := counter.MaterializeWithConnection(conn)
+		err := counter.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
 			return err

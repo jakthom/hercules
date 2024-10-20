@@ -39,7 +39,7 @@ func (s *SummaryMetric) reregister() error {
 	return nil
 }
 
-func (s *SummaryMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (s *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
 	s.reregister()
 	results, err := s.Definition.materializeWithConnection(conn)
 	for _, r := range results {
