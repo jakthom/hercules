@@ -19,8 +19,8 @@ A DuckDB-powered Prometheus Exporter
     - Support duckdb secrets registration ❌
 
 ## Extensions
-    - Support preloading DuckDB built-in extensions ❌
-    - Support preloading DuckDB community extensions ❌
+    - Support preloading DuckDB core extensions ✅
+    - Support preloading DuckDB community extensions ✅
 
 ## Sources
     - Refresh on startup ✅

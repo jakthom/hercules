@@ -16,7 +16,7 @@ type CounterMetricDefinition struct {
 	Labels  []string   `json:"labels"`
 }
 
-func (m *CounterMetricDefinition) AsCounterVec() *prometheus.CounterVec {
+func (m *CounterMetricDefinition) AsVec() *prometheus.CounterVec {
 	v := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: m.Name,
 		Help: m.Help,
