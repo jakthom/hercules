@@ -13,7 +13,7 @@ A DuckDB-powered Prometheus Exporter
     - Consolidate metric definitions ✅
     - Interface the metrics, clean up code duplication ❌
     - Make DEBUG flag actually work, flip log levels accordingly ❌
-    - Make middleware signature actually acceptable ❌
+    - Make middleware signature actually acceptable ✅
 
 ## DuckDB stuff
     - Support ATTACH-ing s3/gcs-based databases ❌
@@ -32,19 +32,19 @@ A DuckDB-powered Prometheus Exporter
 ## Metrics
     - Support all Prometheus metric types
         - gauges (vec) ✅
-        - gauges (no labels) ❌
         - histograms (vec) ✅
-        - histograms (no labels) ❌
         - counters (vec) ✅
-        - counters (no labels) ❌
         - summaries (vec) ✅
-        - summaries (no labels) ❌
+    - Collector reregistration ✅
     - Support named path groupings ❌
     - Support push-based OTEL ❌
-    - Support propagating labels from config ❌
 
 ## Config/Functionality
     - Macros ✅
+
+## Tags
+    - Ducktheus name propagated to tags ❌
+    - Propagate global tags from config ❌
 
 ## Secrets
     - Support passing env-based secrets ❌
