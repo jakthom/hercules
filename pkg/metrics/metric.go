@@ -28,7 +28,7 @@ type metricDefinition struct {
 	Labels  []string   `json:"labels"`
 }
 
-func (md *metricDefinition) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
+func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
 	return materializeMetric(conn, md.Sql)
 }
 
@@ -54,50 +54,62 @@ type MetricDefinitions struct {
 }
 
 type MetricRegistry struct {
-	Gauge     map[string]*prometheus.GaugeVec
-	Counter   map[string]*prometheus.CounterVec
-	Summary   map[string]*prometheus.SummaryVec
-	Histogram map[string]*prometheus.HistogramVec
+	Gauge     map[string]GaugeMetric
+	Counter   map[string]CounterMetric
+	Summary   map[string]SummaryMetric
+	Histogram map[string]HistogramMetric
 }
 
-func (mr *MetricRegistry) AddGauge(d GaugeMetricDefinition) error {
-	g := d.AsVec()
+func (registry *MetricRegistry) AddGauge(d GaugeMetricDefinition) error {
 	log.Trace().Interface("gauge", d.Name).Msg("adding gauge to registry")
-	prometheus.MustRegister(g)
-	mr.Gauge[d.Name] = g
+	metric := GaugeMetric{
+		Definition: d,
+		Collector:  d.AsVec(),
+	}
+	prometheus.MustRegister(metric.Collector)
+	registry.Gauge[d.Name] = metric
 	return nil
 }
 
-func (mr *MetricRegistry) AddHistogram(d HistogramMetricDefinition) error {
-	h := d.AsVec()
+func (registry *MetricRegistry) AddHistogram(d HistogramMetricDefinition) error {
 	log.Trace().Interface("histogram", d.Name).Msg("adding histogram to registry")
-	prometheus.MustRegister(h)
-	mr.Histogram[d.Name] = h
+	metric := HistogramMetric{
+		Definition: d,
+		Collector:  d.AsVec(),
+	}
+	prometheus.MustRegister(metric.Collector)
+	registry.Histogram[d.Name] = metric
 	return nil
 }
 
-func (mr *MetricRegistry) AddSummary(d SummaryMetricDefinition) error {
-	s := d.AsVec()
+func (registry *MetricRegistry) AddSummary(d SummaryMetricDefinition) error {
 	log.Trace().Interface("summary", d.Name).Msg("adding summary to registry")
-	prometheus.MustRegister(s)
-	mr.Summary[d.Name] = s
+	metric := SummaryMetric{
+		Definition: d,
+		Collector:  d.AsVec(),
+	}
+	prometheus.MustRegister(metric.Collector)
+	registry.Summary[d.Name] = metric
 	return nil
 }
 
 func (mr *MetricRegistry) AddCounter(d CounterMetricDefinition) error {
-	c := d.AsVec()
 	log.Trace().Interface("counter", d.Name).Msg("adding counter to registry")
-	prometheus.MustRegister(c)
-	mr.Counter[d.Name] = c
+	metric := CounterMetric{
+		Definition: d,
+		Collector:  d.AsVec(),
+	}
+	prometheus.MustRegister(metric.Collector)
+	mr.Counter[d.Name] = metric
 	return nil
 }
 
 func NewMetricRegistryFromMetricDefinitions(definitions MetricDefinitions) *MetricRegistry {
 	r := MetricRegistry{}
-	r.Gauge = make(map[string]*prometheus.GaugeVec)
-	r.Histogram = make(map[string]*prometheus.HistogramVec)
-	r.Summary = make(map[string]*prometheus.SummaryVec)
-	r.Counter = make(map[string]*prometheus.CounterVec)
+	r.Gauge = make(map[string]GaugeMetric)
+	r.Histogram = make(map[string]HistogramMetric)
+	r.Summary = make(map[string]SummaryMetric)
+	r.Counter = make(map[string]CounterMetric)
 
 	for _, gauge := range definitions.Gauge {
 		r.AddGauge(gauge)

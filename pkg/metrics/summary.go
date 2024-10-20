@@ -1,7 +1,10 @@
 package metrics
 
 import (
+	"database/sql"
+
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog/log"
 )
 
 type SummaryMetricDefinition struct {
@@ -20,4 +23,35 @@ func (m *SummaryMetricDefinition) AsVec() *prometheus.SummaryVec {
 		Objectives: objectives,
 	}, m.Labels)
 	return v
+}
+
+type SummaryMetric struct {
+	Definition SummaryMetricDefinition
+	Collector  *prometheus.SummaryVec
+}
+
+func (s *SummaryMetric) reregister() error {
+	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
+	prometheus.Unregister(s.Collector)
+	collector := s.Definition.AsVec()
+	prometheus.Register(collector)
+	s.Collector = collector
+	return nil
+}
+
+func (s *SummaryMetric) MaterializeWithConnection(conn *sql.Conn) error {
+	s.reregister()
+	results, err := s.Definition.materializeWithConnection(conn)
+	for _, r := range results {
+		s.Collector.With(r.StringifiedLabels()).Observe(r.Value)
+	}
+	if err != nil {
+		log.Error().Err(err).Interface("metric", s.Definition.Name).Msg("could not calculate metric")
+		return err
+	}
+	return nil
+}
+
+func NewSummaryMetricFromDefinition(d SummaryMetricDefinition) {
+
 }

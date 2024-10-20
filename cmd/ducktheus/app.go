@@ -23,12 +23,11 @@ import (
 var VERSION string
 
 type DuckTheus struct {
-	config            config.Config
-	db                *sql.DB
-	conn              *sql.Conn
-	sources           []metrics.Source
-	metricDefinitions metrics.MetricDefinitions
-	metricRegistry    *metrics.MetricRegistry
+	config         config.Config
+	db             *sql.DB
+	conn           *sql.Conn
+	sources        []metrics.Source
+	metricRegistry *metrics.MetricRegistry
 }
 
 func (d *DuckTheus) configure() {
@@ -36,7 +35,6 @@ func (d *DuckTheus) configure() {
 	// Load application config
 	d.config, _ = config.GetConfig()
 	d.sources = d.config.Sources
-	d.metricDefinitions = d.config.Metrics
 }
 
 func (d *DuckTheus) initializeDuckDB() {
@@ -50,7 +48,7 @@ func (d *DuckTheus) initializeSources() {
 }
 
 func (d *DuckTheus) initializeRegistry() {
-	registry := metrics.NewMetricRegistryFromMetricDefinitions(d.metricDefinitions)
+	registry := metrics.NewMetricRegistryFromMetricDefinitions(d.config.Metrics)
 	d.metricRegistry = registry
 }
 
@@ -68,7 +66,7 @@ func (d *DuckTheus) Run() {
 	// Remove all the golang node defaults
 	prometheus.Unregister(collectors.NewGoCollector())
 	// TODO -> Make metrics middleware signature better. Much better.
-	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricDefinitions, d.metricRegistry, promhttp.Handler()))
+	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistry, promhttp.Handler()))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,

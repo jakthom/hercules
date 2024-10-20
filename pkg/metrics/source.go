@@ -42,7 +42,6 @@ func (ms *Source) CreateOrReplaceSql() db.Sql {
 }
 
 func (ms *Source) RefreshWithConn(conn *sql.Conn) error {
-	log.Debug().Interface("source", ms.Name).Msg("refreshing source")
 	_, err := db.RunSqlQuery(conn, ms.CreateOrReplaceSql())
 	log.Debug().Interface("source", ms.Name).Msg("source refreshed")
 	return err
