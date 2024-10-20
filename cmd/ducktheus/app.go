@@ -28,13 +28,7 @@ type DuckTheus struct {
 	conn              *sql.Conn
 	sources           []metrics.Source
 	metricDefinitions metrics.MetricDefinitions
-	// TODO -> use this
-	metricRegistry *metrics.MetricRegistry
-	// TODO -> Scrap these in favor of a single prometheus metric registry
-	gauges     map[string]*prometheus.GaugeVec
-	histograms map[string]*prometheus.HistogramVec
-	summaries  map[string]*prometheus.SummaryVec
-	counters   map[string]*prometheus.CounterVec
+	metricRegistry    *metrics.MetricRegistry
 }
 
 func (d *DuckTheus) configure() {
@@ -57,47 +51,8 @@ func (d *DuckTheus) initializeSources() {
 
 func (d *DuckTheus) initializeRegistry() {
 	// TODO - there's a better way to do and store this. It is very sloppy right now. Will refactor asap
-	// Initialize all Gauge metrics
-	log.Trace().Msg("initializing gauge metrics")
-	gauges := make(map[string]*prometheus.GaugeVec)
-	for _, gauge := range d.metricDefinitions.Gauge {
-		g := gauge.AsGaugeVec()
-		log.Trace().Interface("gauge", gauge.Name).Msg("registering gauge with registry")
-		prometheus.MustRegister(g)
-		gauges[gauge.Name] = g
-	}
-	d.gauges = gauges
-	// Initialize all Histogram metrics
-	log.Trace().Msg("initializing histogram metrics")
-	histograms := make(map[string]*prometheus.HistogramVec)
-	for _, histogram := range d.metricDefinitions.Histogram {
-		h := histogram.AsHistogramVec()
-		log.Trace().Interface("histogram", histogram.Name).Msg("registering histogram with registry")
-		prometheus.MustRegister(h)
-		histograms[histogram.Name] = h
-	}
-	d.histograms = histograms
-	// Initialize all Summary metrics
-	log.Trace().Msg("initializing summary metrics")
-	summaries := make(map[string]*prometheus.SummaryVec)
-	for _, summary := range d.metricDefinitions.Summary {
-		s := summary.AsSummaryVec()
-		log.Trace().Interface("summary", summary.Name).Msg("registering summary with registry")
-		prometheus.MustRegister(s)
-		summaries[summary.Name] = s
-	}
-	d.summaries = summaries
-
-	// Initialize all Counter metrics
-	log.Trace().Msg("initializing summary metrics")
-	counters := make(map[string]*prometheus.CounterVec)
-	for _, counter := range d.metricDefinitions.Counter {
-		c := counter.AsCounterVec()
-		log.Trace().Interface("counter", counter.Name).Msg("registering counter with registry")
-		prometheus.MustRegister(c)
-		counters[counter.Name] = c
-	}
-	d.counters = counters
+	registry := metrics.NewMetricRegistryFromMetricDefinitions(d.metricDefinitions)
+	d.metricRegistry = registry
 }
 
 func (d *DuckTheus) Initialize() {
@@ -114,7 +69,7 @@ func (d *DuckTheus) Run() {
 	// Remove all the golang node defaults
 	prometheus.Unregister(collectors.NewGoCollector())
 	// TODO -> Make metrics middleware signature better. Much better.
-	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricDefinitions, d.gauges, d.histograms, d.summaries, d.counters, promhttp.Handler()))
+	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricDefinitions, d.metricRegistry, promhttp.Handler()))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,

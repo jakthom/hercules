@@ -17,7 +17,7 @@ type HistogramMetricDefinition struct {
 	Buckets []float64
 }
 
-func (m *HistogramMetricDefinition) AsHistogramVec() *prometheus.HistogramVec {
+func (m *HistogramMetricDefinition) AsVec() *prometheus.HistogramVec {
 	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    m.Name,
 		Help:    m.Help,

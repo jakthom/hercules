@@ -16,7 +16,7 @@ type GaugeMetricDefinition struct {
 	Labels  []string   `json:"labels"`
 }
 
-func (m *GaugeMetricDefinition) AsGaugeVec() *prometheus.GaugeVec {
+func (m *GaugeMetricDefinition) AsVec() *prometheus.GaugeVec {
 	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: m.Name,
 		Help: m.Help,
