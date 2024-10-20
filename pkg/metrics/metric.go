@@ -19,6 +19,19 @@ const (
 	SummaryMetricType   MetricType = "summary"
 )
 
+type metricDefinition struct {
+	Name    string     `json:"name"`
+	Enabled bool       `json:"enabled"`
+	Type    MetricType `json:"type"`
+	Help    string     `json:"help"`
+	Sql     db.Sql     `json:"sql"`
+	Labels  []string   `json:"labels"`
+}
+
+func (md *metricDefinition) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
+	return materializeMetric(conn, md.Sql)
+}
+
 func materializeMetric(conn *sql.Conn, sql db.Sql) ([]QueryResult, error) {
 	rows, err := db.RunSqlQuery(conn, sql)
 	var results []QueryResult

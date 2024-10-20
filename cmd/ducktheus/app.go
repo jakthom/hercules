@@ -50,7 +50,6 @@ func (d *DuckTheus) initializeSources() {
 }
 
 func (d *DuckTheus) initializeRegistry() {
-	// TODO - there's a better way to do and store this. It is very sloppy right now. Will refactor asap
 	registry := metrics.NewMetricRegistryFromMetricDefinitions(d.metricDefinitions)
 	d.metricRegistry = registry
 }
