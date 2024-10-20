@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/dbecorp/ducktheus/pkg/db"
+	"github.com/dbecorp/ducktheus/pkg/labels"
 	"github.com/dbecorp/ducktheus/pkg/metrics"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -24,8 +25,6 @@ const (
 	DUCKTHEUS_NAME_LABEL = "ducktheusName"
 )
 
-type Labels map[string]string
-
 type Config struct {
 	DucktheusName string                    `json:"ducktheusName"`
 	Debug         bool                      `json:"debug"`
@@ -38,8 +37,8 @@ type Config struct {
 	Metrics       metrics.MetricDefinitions `json:"metrics"`
 }
 
-func (c *Config) GlobalLabels() Labels {
-	globalLabels := Labels{}
+func (c *Config) GlobalLabels() labels.Labels {
+	globalLabels := labels.Labels{}
 	globalLabels[DUCKTHEUS_NAME_LABEL] = c.DucktheusName
 	for k, v := range c.Labels {
 		globalLabels[k] = v

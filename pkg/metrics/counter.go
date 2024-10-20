@@ -11,7 +11,7 @@ type CounterMetricDefinition struct {
 	metricDefinition `mapstructure:",squash"`
 }
 
-func (m *CounterMetricDefinition) AsVec() *prometheus.CounterVec {
+func (m CounterMetricDefinition) AsVec() *prometheus.CounterVec {
 	v := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: m.Name,
 		Help: m.Help,

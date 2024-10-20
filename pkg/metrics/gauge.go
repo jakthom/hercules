@@ -3,6 +3,7 @@ package metrics
 import (
 	"database/sql"
 
+	"github.com/dbecorp/ducktheus/pkg/labels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -17,14 +18,6 @@ func (m *GaugeMetricDefinition) AsVec() *prometheus.GaugeVec {
 		Help: m.Help,
 	}, m.Labels)
 	return v
-}
-
-func (m *GaugeMetricDefinition) AsGauge() *prometheus.Gauge {
-	v := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: m.Name,
-		Help: m.Help,
-	})
-	return &v
 }
 
 type GaugeMetric struct {
@@ -58,7 +51,7 @@ func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewGaugeMetric(definition GaugeMetricDefinition) GaugeMetric {
+func NewGaugeMetric(definition GaugeMetricDefinition, labels labels.Labels) GaugeMetric {
 	metric := GaugeMetric{
 		Definition: definition,
 	}

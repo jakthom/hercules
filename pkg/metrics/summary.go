@@ -12,7 +12,7 @@ type SummaryMetricDefinition struct {
 	Objectives       []float64
 }
 
-func (m *SummaryMetricDefinition) AsVec() *prometheus.SummaryVec {
+func (m SummaryMetricDefinition) AsVec() *prometheus.SummaryVec {
 	objectives := make(map[float64]float64)
 	for _, o := range m.Objectives {
 		objectives[o] = o

@@ -49,7 +49,7 @@ func (d *DuckTheus) initializeSources() {
 }
 
 func (d *DuckTheus) initializeRegistry() {
-	registry := metrics.NewMetricRegistryFromMetricDefinitions(d.config.Metrics)
+	registry := metrics.NewMetricRegistry(d.config.Metrics, d.config.GlobalLabels())
 	d.metricRegistry = registry
 }
 
@@ -59,8 +59,8 @@ func (d *DuckTheus) Initialize() {
 	d.initializeDuckDB()
 	d.initializeSources()
 	d.initializeRegistry()
+	util.Pprint(d.metricRegistry)
 	log.Debug().Interface("config", d.config).Msg("running with config")
-	util.Pprint(d.config)
 }
 
 func (d *DuckTheus) Run() {
