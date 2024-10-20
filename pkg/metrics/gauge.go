@@ -3,17 +3,12 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/db"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog/log"
 )
 
 type GaugeMetricDefinition struct {
-	Name    string     `json:"name"`
-	Enabled bool       `json:"enabled"`
-	Type    MetricType `json:"type"`
-	Help    string     `json:"help"`
-	Sql     db.Sql     `json:"sql"`
-	Labels  []string   `json:"labels"`
+	metricDefinition `mapstructure:",squash"`
 }
 
 func (m *GaugeMetricDefinition) AsVec() *prometheus.GaugeVec {
@@ -32,6 +27,29 @@ func (m *GaugeMetricDefinition) AsGauge() *prometheus.Gauge {
 	return &v
 }
 
-func (m *GaugeMetricDefinition) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
-	return materializeMetric(conn, m.Sql)
+type GaugeMetric struct {
+	Definition GaugeMetricDefinition
+	Collector  *prometheus.GaugeVec
+}
+
+func (g *GaugeMetric) reregister() error {
+	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
+	prometheus.Unregister(g.Collector)
+	collector := g.Definition.AsVec()
+	prometheus.Register(collector)
+	g.Collector = collector
+	return nil
+}
+
+func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
+	g.reregister()
+	results, err := g.Definition.materializeWithConnection(conn)
+	for _, r := range results {
+		g.Collector.With(r.StringifiedLabels()).Set(r.Value)
+	}
+	if err != nil {
+		log.Error().Err(err).Interface("metric", g.Definition.Name).Msg("could not calculate metric")
+		return err
+	}
+	return nil
 }

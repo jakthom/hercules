@@ -3,18 +3,13 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/db"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog/log"
 )
 
 type HistogramMetricDefinition struct {
-	Name    string     `json:"name"`
-	Enabled bool       `json:"enabled"`
-	Type    MetricType `json:"type"`
-	Help    string     `json:"help"`
-	Sql     db.Sql     `json:"sql"`
-	Labels  []string   `json:"labels"`
-	Buckets []float64
+	metricDefinition `mapstructure:",squash"`
+	Buckets          []float64
 }
 
 func (m *HistogramMetricDefinition) AsVec() *prometheus.HistogramVec {
@@ -26,6 +21,29 @@ func (m *HistogramMetricDefinition) AsVec() *prometheus.HistogramVec {
 	return v
 }
 
-func (m *HistogramMetricDefinition) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
-	return materializeMetric(conn, m.Sql)
+type HistogramMetric struct {
+	Definition HistogramMetricDefinition
+	Collector  *prometheus.HistogramVec
+}
+
+func (h *HistogramMetric) reregister() error {
+	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
+	prometheus.Unregister(h.Collector)
+	collector := h.Definition.AsVec()
+	prometheus.Register(collector)
+	h.Collector = collector
+	return nil
+}
+
+func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
+	h.reregister()
+	results, err := h.Definition.materializeWithConnection(conn)
+	for _, r := range results {
+		h.Collector.With(r.StringifiedLabels()).Observe(r.Value)
+	}
+	if err != nil {
+		log.Error().Err(err).Interface("metric", h.Definition.Name).Msg("could not calculate metric")
+		return err
+	}
+	return nil
 }

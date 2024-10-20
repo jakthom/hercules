@@ -9,7 +9,8 @@ A DuckDB-powered Prometheus Exporter
     - Metric materialization ✅
 
 ## Code stuff
-    - Consolidate metric definitions and metric registry ❌
+    - Pass around full metric registry ✅
+    - Consolidate metric definitions ✅
     - Interface the metrics, clean up code duplication ❌
     - Make DEBUG flag actually work, flip log levels accordingly ❌
     - Make middleware signature actually acceptable ❌

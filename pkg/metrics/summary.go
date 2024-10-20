@@ -3,18 +3,13 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/db"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog/log"
 )
 
 type SummaryMetricDefinition struct {
-	Name       string     `json:"name"`
-	Enabled    bool       `json:"enabled"`
-	Type       MetricType `json:"type"`
-	Help       string     `json:"help"`
-	Sql        db.Sql     `json:"sql"`
-	Labels     []string   `json:"labels"`
-	Objectives []float64
+	metricDefinition `mapstructure:",squash"`
+	Objectives       []float64
 }
 
 func (m *SummaryMetricDefinition) AsVec() *prometheus.SummaryVec {
@@ -30,6 +25,33 @@ func (m *SummaryMetricDefinition) AsVec() *prometheus.SummaryVec {
 	return v
 }
 
-func (m *SummaryMetricDefinition) MaterializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
-	return materializeMetric(conn, m.Sql)
+type SummaryMetric struct {
+	Definition SummaryMetricDefinition
+	Collector  *prometheus.SummaryVec
+}
+
+func (s *SummaryMetric) reregister() error {
+	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
+	prometheus.Unregister(s.Collector)
+	collector := s.Definition.AsVec()
+	prometheus.Register(collector)
+	s.Collector = collector
+	return nil
+}
+
+func (s *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
+	s.reregister()
+	results, err := s.Definition.materializeWithConnection(conn)
+	for _, r := range results {
+		s.Collector.With(r.StringifiedLabels()).Observe(r.Value)
+	}
+	if err != nil {
+		log.Error().Err(err).Interface("metric", s.Definition.Name).Msg("could not calculate metric")
+		return err
+	}
+	return nil
+}
+
+func NewSummaryMetricFromDefinition(d SummaryMetricDefinition) {
+
 }
