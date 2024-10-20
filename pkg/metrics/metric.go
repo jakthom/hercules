@@ -104,6 +104,41 @@ func (mr *MetricRegistry) AddCounter(d CounterMetricDefinition) error {
 	return nil
 }
 
+func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
+	for _, gauge := range mr.Gauge {
+		err := gauge.MaterializeWithConnection(conn)
+		if err != nil {
+			log.Error().Err(err)
+			return err
+		}
+	}
+
+	for _, histogram := range mr.Histogram {
+		err := histogram.MaterializeWithConnection(conn)
+		if err != nil {
+			log.Error().Err(err)
+			return err
+		}
+	}
+
+	for _, summary := range mr.Summary {
+		err := summary.MaterializeWithConnection(conn)
+		if err != nil {
+			log.Error().Err(err)
+			return err
+		}
+	}
+
+	for _, counter := range mr.Counter {
+		err := counter.MaterializeWithConnection(conn)
+		if err != nil {
+			log.Error().Err(err)
+			return err
+		}
+	}
+	return nil
+}
+
 func NewMetricRegistryFromMetricDefinitions(definitions MetricDefinitions) *MetricRegistry {
 	r := MetricRegistry{}
 	r.Gauge = make(map[string]GaugeMetric)
