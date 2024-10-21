@@ -11,7 +11,8 @@ A DuckDB-powered Prometheus Exporter
 ## Code stuff
     - Pass around full metric registry ✅
     - Consolidate metric definitions ✅
-    - Interface the metrics, clean up code duplication ❌
+    - Interface/genericize metrics ❌
+    - clean up code duplication ✅
     - Make DEBUG flag actually work, flip log levels accordingly ❌
     - Make middleware signature actually acceptable ✅
 
@@ -47,6 +48,12 @@ A DuckDB-powered Prometheus Exporter
 
 ## Secrets
     - Support passing env-based secrets ❌
+
+## Operator Niceties
+    - Meta metrics
+        - Source refresh timing ❌
+        - Metric materialization timing ❌
+        - Metric endpoint response time ❌
 
 ## Developer niceties
     - jsonschema-based config (validation, auto-complete) ❌

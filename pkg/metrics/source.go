@@ -24,34 +24,34 @@ type Source struct {
 	RefreshIntervalSeconds int        `json:"refreshIntervalSeconds"`
 }
 
-func (ms *Source) Sql() db.Sql {
-	switch ms.Type {
+func (s *Source) Sql() db.Sql {
+	switch s.Type {
 	case ParquetFileSourceType:
-		return db.Sql(fmt.Sprintf("select * from read_parquet('%s')", ms.Source))
+		return db.Sql(fmt.Sprintf("select * from read_parquet('%s')", s.Source))
 	case CsvFileSourceType:
-		return db.Sql(fmt.Sprintf("select * from read_csv_auto('%s')", ms.Source))
+		return db.Sql(fmt.Sprintf("select * from read_csv_auto('%s')", s.Source))
 	case HttpSourceType:
-		return db.Sql(fmt.Sprintf("select * from '%s'", ms.Source))
+		return db.Sql(fmt.Sprintf("select * from '%s'", s.Source))
 	default: // Default to sql
-		return db.Sql(ms.Source)
+		return db.Sql(s.Source)
 	}
 }
 
-func (ms *Source) CreateOrReplaceSql() db.Sql {
-	return db.Sql("create or replace table " + ms.Name + " as " + string(ms.Sql()) + ";")
+func (s *Source) createOrReplaceSql() db.Sql {
+	return db.Sql("create or replace table " + s.Name + " as " + string(s.Sql()) + ";")
 }
 
-func (ms *Source) RefreshWithConn(conn *sql.Conn) error {
-	_, err := db.RunSqlQuery(conn, ms.CreateOrReplaceSql())
-	log.Debug().Interface("source", ms.Name).Msg("source refreshed")
+func (s *Source) refreshWithConn(conn *sql.Conn) error {
+	_, err := db.RunSqlQuery(conn, s.createOrReplaceSql())
+	log.Debug().Interface("source", s.Name).Msg("source refreshed")
 	return err
 }
 
-func (ms *Source) InitializeWithConnection(conn *sql.Conn) error {
+func (s *Source) InitializeWithConnection(conn *sql.Conn) error {
 	// Pre-populate the metric source
-	ms.RefreshWithConn(conn)
+	s.refreshWithConn(conn)
 	// Start a ticker to continously update the source according to the predefined interval
-	ticker := time.NewTicker(time.Duration(ms.RefreshIntervalSeconds) * time.Second)
+	ticker := time.NewTicker(time.Duration(s.RefreshIntervalSeconds) * time.Second)
 	done := make(chan bool)
 	go func() {
 		for {
@@ -60,8 +60,8 @@ func (ms *Source) InitializeWithConnection(conn *sql.Conn) error {
 				return
 			case <-ticker.C:
 				go func(conn *sql.Conn, source *Source) error {
-					return source.RefreshWithConn(conn)
-				}(conn, ms)
+					return source.refreshWithConn(conn)
+				}(conn, s)
 			}
 		}
 	}()

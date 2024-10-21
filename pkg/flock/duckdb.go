@@ -1,4 +1,4 @@
-package duckdb
+package flock
 
 import (
 	"context"

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/dbecorp/ducktheus/pkg/config"
-	"github.com/dbecorp/ducktheus/pkg/duckdb"
+	"github.com/dbecorp/ducktheus/pkg/flock"
 	metrics "github.com/dbecorp/ducktheus/pkg/metrics"
 	"github.com/dbecorp/ducktheus/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,8 +37,8 @@ func (d *DuckTheus) configure() {
 	d.sources = d.config.Sources
 }
 
-func (d *DuckTheus) initializeDuckDB() {
-	d.db, d.conn = duckdb.InitializeDB(d.config)
+func (d *DuckTheus) initializeFlock() {
+	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
 func (d *DuckTheus) initializeSources() {
@@ -55,7 +55,7 @@ func (d *DuckTheus) initializeRegistry() {
 func (d *DuckTheus) Initialize() {
 	log.Debug().Msg("initializing ducktheus")
 	d.configure()
-	d.initializeDuckDB()
+	d.initializeFlock()
 	d.initializeSources()
 	d.initializeRegistry()
 	log.Debug().Interface("config", d.config).Msg("running with config")
@@ -65,7 +65,6 @@ func (d *DuckTheus) Run() {
 	mux := http.NewServeMux()
 	// Remove all the golang node defaults
 	prometheus.Unregister(collectors.NewGoCollector())
-	// TODO -> Make metrics middleware signature better. Much better.
 	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistry, promhttp.Handler()))
 
 	srv := &http.Server{
