@@ -30,28 +30,28 @@ func (m *HistogramMetric) AsVec() *prometheus.HistogramVec {
 	return v
 }
 
-func (h *HistogramMetric) register() error {
-	collector := h.AsVec()
+func (m *HistogramMetric) register() error {
+	collector := m.AsVec()
 	err := prometheus.Register(collector)
-	h.Collector = collector
+	m.Collector = collector
 	return err
 }
 
-func (h *HistogramMetric) reregister() error {
+func (m *HistogramMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
-	prometheus.Unregister(h.Collector)
-	return h.register()
+	prometheus.Unregister(m.Collector)
+	return m.register()
 }
 
-func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
-	h.reregister()
-	results, err := h.Definition.materializeWithConnection(conn)
+func (m *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
+	m.reregister()
+	results, err := m.Definition.materializeWithConnection(conn)
 	for _, r := range results {
-		l := labels.Merge(r.StringifiedLabels(), h.GlobalLabels)
-		h.Collector.With(l).Observe(r.Value)
+		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
+		m.Collector.With(l).Observe(r.Value)
 	}
 	if err != nil {
-		log.Error().Err(err).Interface("metric", h.Definition.Name).Msg("could not calculate metric")
+		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not calculate metric")
 		return err
 	}
 	return nil

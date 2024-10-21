@@ -34,28 +34,28 @@ func (m *SummaryMetric) AsVec() *prometheus.SummaryVec {
 	return v
 }
 
-func (s *SummaryMetric) register() error {
-	collector := s.AsVec()
+func (m *SummaryMetric) register() error {
+	collector := m.AsVec()
 	err := prometheus.Register(collector)
-	s.Collector = collector
+	m.Collector = collector
 	return err
 }
 
-func (s *SummaryMetric) reregister() error {
+func (m *SummaryMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
-	prometheus.Unregister(s.Collector)
-	return s.register()
+	prometheus.Unregister(m.Collector)
+	return m.register()
 }
 
-func (s *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
-	s.reregister()
-	results, err := s.Definition.materializeWithConnection(conn)
+func (m *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
+	m.reregister()
+	results, err := m.Definition.materializeWithConnection(conn)
 	for _, r := range results {
-		l := labels.Merge(r.StringifiedLabels(), s.GlobalLabels)
-		s.Collector.With(l).Observe(r.Value)
+		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
+		m.Collector.With(l).Observe(r.Value)
 	}
 	if err != nil {
-		log.Error().Err(err).Interface("metric", s.Definition.Name).Msg("could not calculate metric")
+		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not calculate metric")
 		return err
 	}
 	return nil
