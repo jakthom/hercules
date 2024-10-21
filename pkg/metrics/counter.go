@@ -44,13 +44,13 @@ func (m *CounterMetric) reregister() error {
 func (m *CounterMetric) materializeWithConnection(conn *sql.Conn) error {
 	m.reregister()
 	results, err := m.Definition.materializeWithConnection(conn)
+	if err != nil {
+		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
+		return err
+	}
 	for _, r := range results {
 		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
 		m.Collector.With(l).Inc()
-	}
-	if err != nil {
-		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not calculate metric")
-		return err
 	}
 	return nil
 }
