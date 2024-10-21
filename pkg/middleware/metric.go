@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/metrics"
+	"github.com/dbecorp/ducktheus/pkg/metrics"
 )
 
 func MetricsMiddleware(conn *sql.Conn, registry *metrics.MetricRegistry, next http.Handler) http.Handler {

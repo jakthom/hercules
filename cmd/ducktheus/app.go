@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/config"
-	"github.com/dbecorp/ducktheus_exporter/pkg/duckdb"
-	metrics "github.com/dbecorp/ducktheus_exporter/pkg/metrics"
-	"github.com/dbecorp/ducktheus_exporter/pkg/middleware"
+	"github.com/dbecorp/ducktheus/pkg/config"
+	"github.com/dbecorp/ducktheus/pkg/duckdb"
+	metrics "github.com/dbecorp/ducktheus/pkg/metrics"
+	"github.com/dbecorp/ducktheus/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -48,7 +48,7 @@ func (d *DuckTheus) initializeSources() {
 }
 
 func (d *DuckTheus) initializeRegistry() {
-	registry := metrics.NewMetricRegistryFromMetricDefinitions(d.config.Metrics)
+	registry := metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
 	d.metricRegistry = registry
 }
 

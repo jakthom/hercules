@@ -3,6 +3,7 @@ package metrics
 import (
 	"database/sql"
 
+	"github.com/dbecorp/ducktheus/pkg/labels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -12,38 +13,55 @@ type HistogramMetricDefinition struct {
 	Buckets          []float64
 }
 
-func (m *HistogramMetricDefinition) AsVec() *prometheus.HistogramVec {
+type HistogramMetric struct {
+	Definition   HistogramMetricDefinition
+	GlobalLabels labels.GlobalLabels
+	Collector    *prometheus.HistogramVec
+}
+
+func (m *HistogramMetric) AsVec() *prometheus.HistogramVec {
+	var labels = m.GlobalLabels.LabelNames()
+	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    m.Name,
-		Help:    m.Help,
-		Buckets: m.Buckets,
-	}, m.Labels)
+		Name:    m.Definition.Name,
+		Help:    m.Definition.Help,
+		Buckets: m.Definition.Buckets,
+	}, labels)
 	return v
 }
 
-type HistogramMetric struct {
-	Definition HistogramMetricDefinition
-	Collector  *prometheus.HistogramVec
+func (m *HistogramMetric) register() error {
+	collector := m.AsVec()
+	err := prometheus.Register(collector)
+	m.Collector = collector
+	return err
 }
 
-func (h *HistogramMetric) reregister() error {
+func (m *HistogramMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
-	prometheus.Unregister(h.Collector)
-	collector := h.Definition.AsVec()
-	prometheus.Register(collector)
-	h.Collector = collector
-	return nil
+	prometheus.Unregister(m.Collector)
+	return m.register()
 }
 
-func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
-	h.reregister()
-	results, err := h.Definition.materializeWithConnection(conn)
+func (m *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
+	m.reregister()
+	results, err := m.Definition.materializeWithConnection(conn)
 	for _, r := range results {
-		h.Collector.With(r.StringifiedLabels()).Observe(r.Value)
+		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
+		m.Collector.With(l).Observe(r.Value)
 	}
 	if err != nil {
-		log.Error().Err(err).Interface("metric", h.Definition.Name).Msg("could not calculate metric")
+		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not calculate metric")
 		return err
 	}
 	return nil
+}
+
+func NewHistogramMetric(definition HistogramMetricDefinition, labels labels.GlobalLabels) HistogramMetric {
+	metric := HistogramMetric{
+		Definition:   definition,
+		GlobalLabels: labels,
+	}
+	metric.register()
+	return metric
 }

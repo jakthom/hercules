@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/db"
+	"github.com/dbecorp/ducktheus/pkg/db"
 	"github.com/rs/zerolog/log"
 )
 

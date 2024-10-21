@@ -1,4 +1,4 @@
-module github.com/dbecorp/ducktheus_exporter
+module github.com/dbecorp/ducktheus
 
 go 1.22.1
 

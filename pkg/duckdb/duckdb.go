@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/config"
+	"github.com/dbecorp/ducktheus/pkg/config"
 	"github.com/marcboeker/go-duckdb"
 	"github.com/rs/zerolog/log"
 )

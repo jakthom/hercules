@@ -4,8 +4,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/dbecorp/ducktheus_exporter/pkg/db"
-	"github.com/dbecorp/ducktheus_exporter/pkg/metrics"
+	"github.com/dbecorp/ducktheus/pkg/db"
+	"github.com/dbecorp/ducktheus/pkg/labels"
+	"github.com/dbecorp/ducktheus/pkg/metrics"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -20,16 +21,29 @@ const (
 	DEFAULT_DEBUG bool   = false
 	DEFAULT_PORT  string = "9999"
 	DEFAULT_DB    string = "ducktheus.db"
+	// Labels
+	DUCKTHEUS_NAME_LABEL = "ducktheus"
 )
 
 type Config struct {
-	Debug      bool                      `json:"debug"`
-	Port       string                    `json:"port"`
-	Db         string                    `json:"db"`
-	Extensions db.Extensions             `json:"extensions"`
-	Macros     []db.Macro                `json:"macros"`
-	Sources    []metrics.Source          `json:"sources"`
-	Metrics    metrics.MetricDefinitions `json:"metrics"`
+	Name         string                    `json:"name"`
+	Debug        bool                      `json:"debug"`
+	Port         string                    `json:"port"`
+	Db           string                    `json:"db"`
+	GlobalLabels labels.GlobalLabels       `json:"globalLabels"`
+	Extensions   db.Extensions             `json:"extensions"`
+	Macros       []db.Macro                `json:"macros"`
+	Sources      []metrics.Source          `json:"sources"`
+	Metrics      metrics.MetricDefinitions `json:"metrics"`
+}
+
+func (c *Config) InstanceLabels() labels.GlobalLabels {
+	globalLabels := labels.GlobalLabels{}
+	globalLabels[DUCKTHEUS_NAME_LABEL] = c.Name
+	for k, v := range c.GlobalLabels {
+		globalLabels[k] = v
+	}
+	return globalLabels
 }
 
 func (c *Config) Validate() error {

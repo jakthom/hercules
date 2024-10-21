@@ -3,6 +3,7 @@ package metrics
 import (
 	"database/sql"
 
+	"github.com/dbecorp/ducktheus/pkg/labels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -11,45 +12,55 @@ type GaugeMetricDefinition struct {
 	metricDefinition `mapstructure:",squash"`
 }
 
-func (m *GaugeMetricDefinition) AsVec() *prometheus.GaugeVec {
+type GaugeMetric struct {
+	Definition   GaugeMetricDefinition
+	GlobalLabels labels.GlobalLabels
+	Collector    *prometheus.GaugeVec
+}
+
+func (m *GaugeMetric) AsVec() *prometheus.GaugeVec {
+	// TODO -> Combine definition labels and global labels
+	var labels = m.GlobalLabels.LabelNames()
+	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: m.Name,
-		Help: m.Help,
-	}, m.Labels)
+		Name: m.Definition.Name,
+		Help: m.Definition.Help,
+	}, labels)
 	return v
 }
 
-func (m *GaugeMetricDefinition) AsGauge() *prometheus.Gauge {
-	v := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: m.Name,
-		Help: m.Help,
-	})
-	return &v
+func (m *GaugeMetric) register() error {
+	collector := m.AsVec()
+	err := prometheus.Register(collector)
+	m.Collector = collector
+	return err
 }
 
-type GaugeMetric struct {
-	Definition GaugeMetricDefinition
-	Collector  *prometheus.GaugeVec
-}
-
-func (g *GaugeMetric) reregister() error {
+func (m *GaugeMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
-	prometheus.Unregister(g.Collector)
-	collector := g.Definition.AsVec()
-	prometheus.Register(collector)
-	g.Collector = collector
-	return nil
+	prometheus.Unregister(m.Collector)
+	return m.register()
 }
 
-func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
-	g.reregister()
-	results, err := g.Definition.materializeWithConnection(conn)
+func (m *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
+	m.reregister()
+	results, err := m.Definition.materializeWithConnection(conn)
 	for _, r := range results {
-		g.Collector.With(r.StringifiedLabels()).Set(r.Value)
+		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
+		m.Collector.With(l).Set(r.Value)
 	}
 	if err != nil {
-		log.Error().Err(err).Interface("metric", g.Definition.Name).Msg("could not calculate metric")
+		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not calculate metric")
 		return err
 	}
 	return nil
+}
+
+func NewGaugeMetric(definition GaugeMetricDefinition, labels labels.GlobalLabels) GaugeMetric {
+	metric := GaugeMetric{
+		Definition:   definition,
+		GlobalLabels: labels,
+	}
+	metric.register()
+	return metric
 }

@@ -1,8 +1,13 @@
 version: 1
 
+name: edge
 debug: false
 port: 9100
 db: ducktheus.db
+
+globalLabels:
+  - cell: ausw1
+  - env: dev
 
 extensions:
   core:
@@ -52,6 +57,15 @@ metrics:
       sql: select struct_pack(user := 'yeeee') as labels, two();
       labels:
         - user
+
+    - name: query_status_count
+      help: Queries executed and their associated status, by user and warehouse
+      enabled: true
+      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name, status := lower(execution_status)) as labels, count(*) as value group by 1;
+      labels:
+        - user
+        - warehouse
+        - status
 
     - name: queries_this_week_total
       help: Queries this week total, by user and warehouse

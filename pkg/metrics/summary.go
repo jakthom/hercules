@@ -3,6 +3,7 @@ package metrics
 import (
 	"database/sql"
 
+	"github.com/dbecorp/ducktheus/pkg/labels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -12,46 +13,59 @@ type SummaryMetricDefinition struct {
 	Objectives       []float64
 }
 
-func (m *SummaryMetricDefinition) AsVec() *prometheus.SummaryVec {
+type SummaryMetric struct {
+	Definition   SummaryMetricDefinition
+	GlobalLabels labels.GlobalLabels
+	Collector    *prometheus.SummaryVec
+}
+
+func (m *SummaryMetric) AsVec() *prometheus.SummaryVec {
 	objectives := make(map[float64]float64)
-	for _, o := range m.Objectives {
+	for _, o := range m.Definition.Objectives {
 		objectives[o] = o
 	}
+	var labels = m.GlobalLabels.LabelNames()
+	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Name:       m.Name,
-		Help:       m.Help,
+		Name:       m.Definition.Name,
+		Help:       m.Definition.Help,
 		Objectives: objectives,
-	}, m.Labels)
+	}, labels)
 	return v
 }
 
-type SummaryMetric struct {
-	Definition SummaryMetricDefinition
-	Collector  *prometheus.SummaryVec
+func (m *SummaryMetric) register() error {
+	collector := m.AsVec()
+	err := prometheus.Register(collector)
+	m.Collector = collector
+	return err
 }
 
-func (s *SummaryMetric) reregister() error {
+func (m *SummaryMetric) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
-	prometheus.Unregister(s.Collector)
-	collector := s.Definition.AsVec()
-	prometheus.Register(collector)
-	s.Collector = collector
-	return nil
+	prometheus.Unregister(m.Collector)
+	return m.register()
 }
 
-func (s *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
-	s.reregister()
-	results, err := s.Definition.materializeWithConnection(conn)
+func (m *SummaryMetric) materializeWithConnection(conn *sql.Conn) error {
+	m.reregister()
+	results, err := m.Definition.materializeWithConnection(conn)
 	for _, r := range results {
-		s.Collector.With(r.StringifiedLabels()).Observe(r.Value)
+		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
+		m.Collector.With(l).Observe(r.Value)
 	}
 	if err != nil {
-		log.Error().Err(err).Interface("metric", s.Definition.Name).Msg("could not calculate metric")
+		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not calculate metric")
 		return err
 	}
 	return nil
 }
 
-func NewSummaryMetricFromDefinition(d SummaryMetricDefinition) {
-
+func NewSummaryMetric(definition SummaryMetricDefinition, labels labels.GlobalLabels) SummaryMetric {
+	metric := SummaryMetric{
+		Definition:   definition,
+		GlobalLabels: labels,
+	}
+	metric.register()
+	return metric
 }
