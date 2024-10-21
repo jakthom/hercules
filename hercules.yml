@@ -3,7 +3,7 @@ version: 1
 name: edge
 debug: false
 port: 9100
-db: ducktheus.db
+db: hercules.db
 
 globalLabels:
   - cell: ausw1
@@ -26,10 +26,9 @@ extensions:
 
 macros:
   - name: one
-  - sql: create or replace macro one() AS (SELECT 1);
-
+    sql: create or replace macro one() AS (SELECT 1);
   - name: two
-  - sql: create or replace macro two() AS (SELECT 2);
+    sql: create or replace macro two() AS (SELECT 2);
 
 sources:
   - name: snowflake_query_history
@@ -38,12 +37,24 @@ sources:
     refreshIntervalSeconds: 5
 
   - name: united_states_zip_codes
-    type: sql
-    source: select * from read_csv_auto('https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv')
-    refreshIntervalSeconds: 1000
+    type: csv
+    source: https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv
+    refreshIntervalSeconds: 100
+
+  - name: nyc_yellow_taxi_june_2024
+    type: parquet
+    source: https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-07.parquet
+    refreshIntervalSeconds: 100
 
 metrics:
   gauge:
+    - name: nyc_pickup_location_fare_total
+      help: The total
+      enabled: True
+      sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1
+      labels:
+        - pickupLocation
+
     - name: one_one_one_one
       help: Testing the one() macro
       enabled: true

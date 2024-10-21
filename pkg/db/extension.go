@@ -28,6 +28,7 @@ func ensureExtension(conn *sql.Conn, extensionName string, extensionType string)
 	if err != nil {
 		log.Fatal().Err(err).Interface("extension", extensionName).Msg("unable to load " + extensionType + " extension")
 	}
+	log.Info().Interface("extension", extensionName).Msg(extensionType + " extension ensured")
 }
 
 type CoreExtension struct {

@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	app := DuckTheus{}
+	app := Hercules{}
 	app.Initialize()
 	app.Run()
 }

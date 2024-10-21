@@ -10,62 +10,66 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dbecorp/ducktheus/pkg/config"
-	"github.com/dbecorp/ducktheus/pkg/duckdb"
-	metrics "github.com/dbecorp/ducktheus/pkg/metrics"
-	"github.com/dbecorp/ducktheus/pkg/middleware"
+	"github.com/dbecorp/hercules/pkg/config"
+	"github.com/dbecorp/hercules/pkg/flock"
+	metrics "github.com/dbecorp/hercules/pkg/metrics"
+	"github.com/dbecorp/hercules/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 var VERSION string
 
-type DuckTheus struct {
+type Hercules struct {
 	config         config.Config
 	db             *sql.DB
 	conn           *sql.Conn
-	sources        []metrics.Source
 	metricRegistry *metrics.MetricRegistry
 }
 
-func (d *DuckTheus) configure() {
-	log.Debug().Msg("configuring ducktheus")
-	// Load application config
+func (d *Hercules) configure() {
+	log.Debug().Msg("configuring Hercules")
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	debug := os.Getenv(config.DEBUG)
+	if debug != "" && (debug == "true" || debug == "1" || debug == "True") {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	trace := os.Getenv(config.TRACE)
+	if trace != "" && (trace == "true" || trace == "1" || trace == "True") {
+		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	}
 	d.config, _ = config.GetConfig()
-	d.sources = d.config.Sources
 }
 
-func (d *DuckTheus) initializeDuckDB() {
-	d.db, d.conn = duckdb.InitializeDB(d.config)
+func (d *Hercules) initializeFlock() {
+	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
-func (d *DuckTheus) initializeSources() {
-	for _, source := range d.sources {
+func (d *Hercules) initializeSources() {
+	for _, source := range d.config.Sources {
 		source.InitializeWithConnection(d.conn)
 	}
 }
 
-func (d *DuckTheus) initializeRegistry() {
-	registry := metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
-	d.metricRegistry = registry
+func (d *Hercules) initializeRegistry() {
+	d.metricRegistry = metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
 }
 
-func (d *DuckTheus) Initialize() {
-	log.Debug().Msg("initializing ducktheus")
+func (d *Hercules) Initialize() {
+	log.Debug().Msg("initializing Hercules")
 	d.configure()
-	d.initializeDuckDB()
+	d.initializeFlock()
 	d.initializeSources()
 	d.initializeRegistry()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 
-func (d *DuckTheus) Run() {
+func (d *Hercules) Run() {
 	mux := http.NewServeMux()
-	// Remove all the golang node defaults
-	prometheus.Unregister(collectors.NewGoCollector())
-	// TODO -> Make metrics middleware signature better. Much better.
+	prometheus.Unregister(collectors.NewGoCollector()) // Remove golang node defaults
 	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistry, promhttp.Handler()))
 
 	srv := &http.Server{
@@ -73,7 +77,7 @@ func (d *DuckTheus) Run() {
 		Handler: mux,
 	}
 	go func() {
-		log.Info().Msg("ducktheus is running...")
+		log.Info().Msg("Hercules is running...")
 		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
 			log.Info().Msgf("server shut down")
 		}

@@ -1,27 +1,19 @@
-package duckdb
+package flock
 
 import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
 
-	"github.com/dbecorp/ducktheus/pkg/config"
+	"github.com/dbecorp/hercules/pkg/config"
+	"github.com/dbecorp/hercules/pkg/db"
 	"github.com/marcboeker/go-duckdb"
 	"github.com/rs/zerolog/log"
 )
 
 func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	connector, err := duckdb.NewConnector(conf.Db, func(execer driver.ExecerContext) error {
-		// STUB OUT A SPOT FOR BOOT QUERIES
-		// var err error
-		// bootQueries := []string{}
-
-		// for _, query := range bootQueries {
-		// 	_, err = execer.ExecContext(context.Background(), query, nil)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+		// Stub for boot queries
 		return nil
 	})
 	if err != nil {
@@ -32,23 +24,33 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not initialize duckdb connection")
 	}
-	ensureMacros(conf, conn)
-	ensureExtensions(conf, conn)
+	ensureMacros(conf.Macros, conn)
+	ensureExtensions(conf.Extensions, conn)
 	defer db.Close()
 	return db, conn
 }
 
-func ensureMacros(conf config.Config, conn *sql.Conn) {
-	for _, macro := range conf.Macros {
+func ensureMacros(macros []db.Macro, conn *sql.Conn) {
+	// Ensure built-in macros are present
+	for _, macro := range herculesMacros() {
+		macro.EnsureWithConnection(conn)
+	}
+	// Ensure configured macros are present
+	for _, macro := range macros {
 		macro.EnsureWithConnection(conn)
 	}
 }
 
-func ensureExtensions(conf config.Config, conn *sql.Conn) {
-	for _, coreExtension := range conf.Extensions.Core {
+func ensureExtensions(extensions db.Extensions, conn *sql.Conn) {
+	for _, coreExtension := range extensions.Core {
 		coreExtension.EnsureWithConnection(conn)
 	}
-	for _, communityExtension := range conf.Extensions.Community {
+	for _, communityExtension := range extensions.Community {
 		communityExtension.EnsureWithConnection(conn)
 	}
+}
+
+func herculesMacros() []db.Macro {
+	// Stub global macros
+	return []db.Macro{}
 }

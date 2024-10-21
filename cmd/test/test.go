@@ -1,6 +1,6 @@
 package main
 
-import "github.com/dbecorp/ducktheus/pkg/util"
+import "github.com/dbecorp/hercules/pkg/util"
 
 type Thing map[string]string
 

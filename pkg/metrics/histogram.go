@@ -3,7 +3,7 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/ducktheus/pkg/labels"
+	"github.com/dbecorp/hercules/pkg/labels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )

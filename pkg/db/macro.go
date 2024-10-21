@@ -2,10 +2,12 @@ package db
 
 import (
 	"database/sql"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Macro struct {
-	Name string `json:"name"` // Really a no-op. Probably overkill. Nice for future reasons.
+	Name string `json:"name"` // No-op. Probably overkill. Nice for future reasons.
 	Sql  Sql    `json:"sql"`
 }
 
@@ -15,5 +17,10 @@ func (m *Macro) CreateOrReplaceSql() Sql {
 }
 
 func (m *Macro) EnsureWithConnection(conn *sql.Conn) {
-	RunSqlQuery(conn, m.CreateOrReplaceSql())
+	_, err := RunSqlQuery(conn, m.CreateOrReplaceSql())
+	if err != nil {
+
+		log.Fatal().Err(err).Msg("could not ensure macro")
+	}
+	log.Info().Interface("macro", m.Sql).Msg("macro ensured")
 }
