@@ -4,26 +4,26 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/dbecorp/ducktheus/pkg/db"
-	"github.com/dbecorp/ducktheus/pkg/labels"
-	"github.com/dbecorp/ducktheus/pkg/metrics"
+	"github.com/dbecorp/hercules/pkg/db"
+	"github.com/dbecorp/hercules/pkg/labels"
+	"github.com/dbecorp/hercules/pkg/metrics"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 const (
 	// Config File/Env Defaults
-	DUCKTHEUS_CONFIG_PATH         string = "DUCKTHEUS_CONFIG_PATH"
-	DEFAULT_DUCKTHEUS_CONFIG_PATH string = "ducktheus.yml"
-	DEBUG                         string = "DEBUG"
-	TRACE                         string = "TRACE"
-	YAML_CONFIG_TYPE              string = "yaml"
+	HERCULES_CONFIG_PATH         string = "HERCULES_CONFIG_PATH"
+	DEFAULT_HERCULES_CONFIG_PATH string = "hercules.yml"
+	DEBUG                        string = "DEBUG"
+	TRACE                        string = "TRACE"
+	YAML_CONFIG_TYPE             string = "yaml"
 	// Default Config Values
 	DEFAULT_DEBUG bool   = false
 	DEFAULT_PORT  string = "9999"
-	DEFAULT_DB    string = "ducktheus.db"
+	DEFAULT_DB    string = "hercules.db"
 	// Labels
-	DUCKTHEUS_NAME_LABEL = "ducktheus"
+	HERCULES_NAME_LABEL = "hercules"
 )
 
 type Config struct {
@@ -40,7 +40,7 @@ type Config struct {
 
 func (c *Config) InstanceLabels() labels.GlobalLabels {
 	globalLabels := labels.GlobalLabels{}
-	globalLabels[DUCKTHEUS_NAME_LABEL] = c.Name
+	globalLabels[HERCULES_NAME_LABEL] = c.Name
 	for k, v := range c.GlobalLabels {
 		globalLabels[k] = v
 	}
@@ -55,9 +55,9 @@ func (c *Config) Validate() error {
 // Get configuration. If the specified file cannot be read fall back to sane defaults.
 func GetConfig() (Config, error) {
 	// Load app config from file
-	confPath := os.Getenv(DUCKTHEUS_CONFIG_PATH)
+	confPath := os.Getenv(HERCULES_CONFIG_PATH)
 	if confPath == "" {
-		confPath = DEFAULT_DUCKTHEUS_CONFIG_PATH
+		confPath = DEFAULT_HERCULES_CONFIG_PATH
 	}
 	log.Info().Msg("loading config from " + confPath)
 	config := &Config{}

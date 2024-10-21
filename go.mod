@@ -1,4 +1,4 @@
-module github.com/dbecorp/ducktheus
+module github.com/dbecorp/hercules
 
 go 1.22.1
 

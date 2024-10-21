@@ -3,8 +3,8 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/ducktheus/pkg/db"
-	"github.com/dbecorp/ducktheus/pkg/labels"
+	"github.com/dbecorp/hercules/pkg/db"
+	"github.com/dbecorp/hercules/pkg/labels"
 	"github.com/rs/zerolog/log"
 )
 

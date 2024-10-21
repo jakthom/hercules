@@ -1,5 +1,5 @@
-# ducktheus_exporter
-A DuckDB-powered Prometheus Exporter
+# Hercules
+An OLAP-powered Prometheus Exporter
 
 # To-Do, Features
 ## Clean up application initialization
@@ -39,7 +39,7 @@ A DuckDB-powered Prometheus Exporter
     - Support named path groupings ❌
     - Support push-based OTEL ❌
     - Labels
-        - Ducktheus name propagated to labels ✅
+        - Hercules name propagated to labels ✅
         - Propagate global labels from config ✅
 
 ## Config/Functionality

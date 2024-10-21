@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dbecorp/ducktheus/pkg/config"
-	"github.com/dbecorp/ducktheus/pkg/flock"
-	metrics "github.com/dbecorp/ducktheus/pkg/metrics"
-	"github.com/dbecorp/ducktheus/pkg/middleware"
+	"github.com/dbecorp/hercules/pkg/config"
+	"github.com/dbecorp/hercules/pkg/flock"
+	metrics "github.com/dbecorp/hercules/pkg/metrics"
+	"github.com/dbecorp/hercules/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -23,15 +23,15 @@ import (
 
 var VERSION string
 
-type DuckTheus struct {
+type Hercules struct {
 	config         config.Config
 	db             *sql.DB
 	conn           *sql.Conn
 	metricRegistry *metrics.MetricRegistry
 }
 
-func (d *DuckTheus) configure() {
-	log.Debug().Msg("configuring ducktheus")
+func (d *Hercules) configure() {
+	log.Debug().Msg("configuring Hercules")
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	debug := os.Getenv(config.DEBUG)
 	if debug != "" && (debug == "true" || debug == "1" || debug == "True") {
@@ -44,22 +44,22 @@ func (d *DuckTheus) configure() {
 	d.config, _ = config.GetConfig()
 }
 
-func (d *DuckTheus) initializeFlock() {
+func (d *Hercules) initializeFlock() {
 	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
-func (d *DuckTheus) initializeSources() {
+func (d *Hercules) initializeSources() {
 	for _, source := range d.config.Sources {
 		source.InitializeWithConnection(d.conn)
 	}
 }
 
-func (d *DuckTheus) initializeRegistry() {
+func (d *Hercules) initializeRegistry() {
 	d.metricRegistry = metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
 }
 
-func (d *DuckTheus) Initialize() {
-	log.Debug().Msg("initializing ducktheus")
+func (d *Hercules) Initialize() {
+	log.Debug().Msg("initializing Hercules")
 	d.configure()
 	d.initializeFlock()
 	d.initializeSources()
@@ -67,7 +67,7 @@ func (d *DuckTheus) Initialize() {
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 
-func (d *DuckTheus) Run() {
+func (d *Hercules) Run() {
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove golang node defaults
 	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistry, promhttp.Handler()))
@@ -77,7 +77,7 @@ func (d *DuckTheus) Run() {
 		Handler: mux,
 	}
 	go func() {
-		log.Info().Msg("ducktheus is running...")
+		log.Info().Msg("Hercules is running...")
 		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
 			log.Info().Msgf("server shut down")
 		}
