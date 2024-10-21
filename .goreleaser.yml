@@ -2,7 +2,7 @@ builds:
   - id: hercules
     main: ./cmd/hercules/
     binary: hercules
-    goos: [windows, darwin, linux, freebsd, openbsd]
+    goos: [darwin, linux, freebsd, openbsd]
     goarch: [amd64, arm64]
     ldflags: >
       -s -w
@@ -21,3 +21,6 @@ release:
     name: hercules
   prerelease: auto
   disable: false
+# brews:
+#   - name: hercules
+#     homepage: https://github.com/dbecorp/homebrew-hercules
