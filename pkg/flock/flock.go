@@ -12,16 +12,7 @@ import (
 
 func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	connector, err := duckdb.NewConnector(conf.Db, func(execer driver.ExecerContext) error {
-		// STUB OUT A SPOT FOR BOOT QUERIES
-		// var err error
-		// bootQueries := []string{}
-
-		// for _, query := range bootQueries {
-		// 	_, err = execer.ExecContext(context.Background(), query, nil)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+		// Stub for boot queries
 		return nil
 	})
 	if err != nil {

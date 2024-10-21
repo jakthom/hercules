@@ -16,6 +16,7 @@ const (
 	DUCKTHEUS_CONFIG_PATH         string = "DUCKTHEUS_CONFIG_PATH"
 	DEFAULT_DUCKTHEUS_CONFIG_PATH string = "ducktheus.yml"
 	DEBUG                         string = "DEBUG"
+	TRACE                         string = "TRACE"
 	YAML_CONFIG_TYPE              string = "yaml"
 	// Default Config Values
 	DEFAULT_DEBUG bool   = false

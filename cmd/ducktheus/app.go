@@ -37,6 +37,10 @@ func (d *DuckTheus) configure() {
 	if debug != "" && (debug == "true" || debug == "1" || debug == "True") {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
+	trace := os.Getenv(config.TRACE)
+	if trace != "" && (trace == "true" || trace == "1" || trace == "True") {
+		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	}
 	d.config, _ = config.GetConfig()
 }
 
