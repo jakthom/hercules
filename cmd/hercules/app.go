@@ -77,7 +77,7 @@ func (d *Hercules) Run() {
 		Handler: mux,
 	}
 	go func() {
-		log.Info().Msg("Hercules is running...")
+		log.Info().Msg("Hercules is running with version: " + VERSION)
 		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
 			log.Info().Msgf("server shut down")
 		}

@@ -1,0 +1,11 @@
+FROM --platform=linux/arm64 golang:1.22.1
+WORKDIR /workspace
+COPY . .
+
+RUN mkdir artifacts;
+ENV CGO_ENABLED=1
+ENV GOOS=linux
+ENV GOARCH=arm64
+
+RUN go build -o artifacts/hercules-$GOOS-$GOARCH -ldflags="-X main.VERSION=$(cat .VERSION)" ./cmd/hercules
+ENTRYPOINT []

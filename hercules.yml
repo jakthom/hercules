@@ -17,12 +17,9 @@ extensions:
     - name: fts
 
   community:
-    - name: bigquery # Read from BigQuery
     - name: chsql # Clickhouse macros and functions
     - name: lindel # Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
     - name: prql # Pipelined Relational Query Language
-    - name: sheetreader # Turn XLSX files into metrics
-    - name: tarfs # Glob, open and read files within .tar archives
 
 macros:
   - name: one
@@ -43,20 +40,20 @@ sources:
     materialize: true
     refreshIntervalSeconds: 100
 
-  # - name: nyc_yellow_taxi_june_2024
-  #   type: parquet
-  #   source: https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-07.parquet
-  #   materialize: true
-  #   refreshIntervalSeconds: 100
+  - name: nyc_yellow_taxi_june_2024
+    type: parquet
+    source: https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-07.parquet
+    materialize: true
+    refreshIntervalSeconds: 100
 
 metrics:
   gauge:
-    # - name: nyc_pickup_location_fare_total
-    #   help: The total
-    #   enabled: True
-    #   sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1
-    #   labels:
-    #     - pickupLocation
+    - name: nyc_pickup_location_fare_total
+      help: The total
+      enabled: True
+      sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1
+      labels:
+        - pickupLocation
 
     - name: one_one_one_one
       help: Testing the one() macro

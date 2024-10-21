@@ -2,7 +2,7 @@
 VERSION:=$(shell cat .VERSION)
 HERCULES_DIR="./cmd/hercules/"
 
-build:
+build: ## Build hercules locally
 	CGO_ENABLED=1 go build -ldflags="-X main.VERSION=$(VERSION)" -o hercules $(HERCULES_DIR)
 
 run: ## Run hercules locally
