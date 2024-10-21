@@ -29,6 +29,9 @@ type metricDefinition struct {
 
 func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
 	rows, err := db.RunSqlQuery(conn, md.Sql)
+	if err != nil {
+		return nil, err
+	}
 	var results []QueryResult
 	for rows.Next() {
 		result := QueryResult{}
@@ -67,7 +70,6 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 		err := gauge.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
-			return err
 		}
 	}
 
@@ -75,7 +77,6 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 		err := histogram.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
-			return err
 		}
 	}
 
@@ -83,7 +84,6 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 		err := summary.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
-			return err
 		}
 	}
 
@@ -91,7 +91,6 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 		err := counter.materializeWithConnection(conn)
 		if err != nil {
 			log.Error().Err(err)
-			return err
 		}
 	}
 	return nil

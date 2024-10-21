@@ -169,6 +169,14 @@ metrics:
         - 0.9
         - 0.99
 
+    - name: badmetric_hist
+      help: A bad metric that will never materialize
+      enabled: true
+      sql: select struct_pack(user := 'yo') as labels, from yo ();
+      objectives:
+        - 0.1
+        - 0.5
+
   counter:
     - name: queries_executed_count
       help: The count of queries executed by user and warehouse
@@ -176,3 +184,8 @@ metrics:
       labels:
         - user
         - warehouse
+
+    - name: badmetric_more
+      help: A bad metric that will never materialize
+      enabled: true
+      sql: select struct_pack(user := 'yo') as labels, from yo ();
