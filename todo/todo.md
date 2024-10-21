@@ -35,6 +35,9 @@
     - jsonschema-based config (validation, auto-complete) ❌
     - config validation (run through a local duckdb) ❌
 
+## Tests dude
+    - Write them
+
 ## Distribution stuff
     - Build docker and publish to ghcr.io ❌
     - Build binaries and publish to package registry ❌
