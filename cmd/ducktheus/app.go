@@ -14,7 +14,6 @@ import (
 	"github.com/dbecorp/ducktheus/pkg/duckdb"
 	metrics "github.com/dbecorp/ducktheus/pkg/metrics"
 	"github.com/dbecorp/ducktheus/pkg/middleware"
-	"github.com/dbecorp/ducktheus/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -49,7 +48,7 @@ func (d *DuckTheus) initializeSources() {
 }
 
 func (d *DuckTheus) initializeRegistry() {
-	registry := metrics.NewMetricRegistry(d.config.Metrics, d.config.GlobalLabels())
+	registry := metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
 	d.metricRegistry = registry
 }
 
@@ -59,7 +58,6 @@ func (d *DuckTheus) Initialize() {
 	d.initializeDuckDB()
 	d.initializeSources()
 	d.initializeRegistry()
-	util.Pprint(d.metricRegistry)
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 

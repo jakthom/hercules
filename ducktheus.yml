@@ -1,11 +1,11 @@
 version: 1
 
-ducktheusName: ducktheus-edge
+name: edge
 debug: false
 port: 9100
 db: ducktheus.db
 
-labels:
+globalLabels:
   - cell: ausw1
   - env: dev
 

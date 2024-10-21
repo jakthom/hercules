@@ -12,21 +12,25 @@ type GaugeMetricDefinition struct {
 	metricDefinition `mapstructure:",squash"`
 }
 
-func (m *GaugeMetricDefinition) AsVec() *prometheus.GaugeVec {
+type GaugeMetric struct {
+	Definition   GaugeMetricDefinition
+	GlobalLabels labels.GlobalLabels
+	Collector    *prometheus.GaugeVec
+}
+
+func (m *GaugeMetric) AsVec() *prometheus.GaugeVec {
+	// TODO -> Combine definition labels and global labels
+	var labels = m.GlobalLabels.LabelNames()
+	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: m.Name,
-		Help: m.Help,
-	}, m.Labels)
+		Name: m.Definition.Name,
+		Help: m.Definition.Help,
+	}, labels)
 	return v
 }
 
-type GaugeMetric struct {
-	Definition GaugeMetricDefinition
-	Collector  *prometheus.GaugeVec
-}
-
 func (g *GaugeMetric) register() error {
-	collector := g.Definition.AsVec()
+	collector := g.AsVec()
 	err := prometheus.Register(collector)
 	g.Collector = collector
 	return err
@@ -42,7 +46,8 @@ func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
 	g.reregister()
 	results, err := g.Definition.materializeWithConnection(conn)
 	for _, r := range results {
-		g.Collector.With(r.StringifiedLabels()).Set(r.Value)
+		l := labels.Merge(r.StringifiedLabels(), g.GlobalLabels)
+		g.Collector.With(l).Set(r.Value)
 	}
 	if err != nil {
 		log.Error().Err(err).Interface("metric", g.Definition.Name).Msg("could not calculate metric")
@@ -51,9 +56,10 @@ func (g *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewGaugeMetric(definition GaugeMetricDefinition, labels labels.Labels) GaugeMetric {
+func NewGaugeMetric(definition GaugeMetricDefinition, labels labels.GlobalLabels) GaugeMetric {
 	metric := GaugeMetric{
-		Definition: definition,
+		Definition:   definition,
+		GlobalLabels: labels,
 	}
 	metric.register()
 	return metric

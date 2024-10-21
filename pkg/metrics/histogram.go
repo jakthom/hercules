@@ -3,6 +3,7 @@ package metrics
 import (
 	"database/sql"
 
+	"github.com/dbecorp/ducktheus/pkg/labels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -12,22 +13,25 @@ type HistogramMetricDefinition struct {
 	Buckets          []float64
 }
 
-func (m HistogramMetricDefinition) AsVec() *prometheus.HistogramVec {
+type HistogramMetric struct {
+	Definition   HistogramMetricDefinition
+	GlobalLabels labels.GlobalLabels
+	Collector    *prometheus.HistogramVec
+}
+
+func (m *HistogramMetric) AsVec() *prometheus.HistogramVec {
+	var labels = m.GlobalLabels.LabelNames()
+	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    m.Name,
-		Help:    m.Help,
-		Buckets: m.Buckets,
-	}, m.Labels)
+		Name:    m.Definition.Name,
+		Help:    m.Definition.Help,
+		Buckets: m.Definition.Buckets,
+	}, labels)
 	return v
 }
 
-type HistogramMetric struct {
-	Definition HistogramMetricDefinition
-	Collector  *prometheus.HistogramVec
-}
-
 func (h *HistogramMetric) register() error {
-	collector := h.Definition.AsVec()
+	collector := h.AsVec()
 	err := prometheus.Register(collector)
 	h.Collector = collector
 	return err
@@ -43,7 +47,8 @@ func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
 	h.reregister()
 	results, err := h.Definition.materializeWithConnection(conn)
 	for _, r := range results {
-		h.Collector.With(r.StringifiedLabels()).Observe(r.Value)
+		l := labels.Merge(r.StringifiedLabels(), h.GlobalLabels)
+		h.Collector.With(l).Observe(r.Value)
 	}
 	if err != nil {
 		log.Error().Err(err).Interface("metric", h.Definition.Name).Msg("could not calculate metric")
@@ -52,9 +57,10 @@ func (h *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewHistogramMetric(definition HistogramMetricDefinition) HistogramMetric {
+func NewHistogramMetric(definition HistogramMetricDefinition, labels labels.GlobalLabels) HistogramMetric {
 	metric := HistogramMetric{
-		Definition: definition,
+		Definition:   definition,
+		GlobalLabels: labels,
 	}
 	metric.register()
 	return metric

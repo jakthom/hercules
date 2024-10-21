@@ -5,7 +5,6 @@ import (
 
 	"github.com/dbecorp/ducktheus/pkg/db"
 	"github.com/dbecorp/ducktheus/pkg/labels"
-	"github.com/dbecorp/ducktheus/pkg/util"
 	"github.com/rs/zerolog/log"
 )
 
@@ -92,8 +91,7 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewMetricRegistry(definitions MetricDefinitions, labels labels.Labels) *MetricRegistry {
-	util.Pprint(labels)
+func NewMetricRegistry(definitions MetricDefinitions, labels labels.GlobalLabels) *MetricRegistry {
 	r := MetricRegistry{}
 	r.Gauge = make(map[string]GaugeMetric)
 	r.Histogram = make(map[string]HistogramMetric)
@@ -105,15 +103,15 @@ func NewMetricRegistry(definitions MetricDefinitions, labels labels.Labels) *Met
 		r.Gauge[g.Definition.Name] = g
 	}
 	for _, definition := range definitions.Histogram {
-		h := NewHistogramMetric(definition)
+		h := NewHistogramMetric(definition, labels)
 		r.Histogram[h.Definition.Name] = h
 	}
 	for _, definition := range definitions.Summary {
-		s := NewSummaryMetric(definition)
+		s := NewSummaryMetric(definition, labels)
 		r.Summary[s.Definition.Name] = s
 	}
 	for _, definition := range definitions.Counter {
-		c := NewCounterMetric(definition)
+		c := NewCounterMetric(definition, labels)
 		r.Counter[c.Definition.Name] = c
 	}
 	return &r

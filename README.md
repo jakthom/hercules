@@ -38,13 +38,12 @@ A DuckDB-powered Prometheus Exporter
     - Collector reregistration ✅
     - Support named path groupings ❌
     - Support push-based OTEL ❌
+    - Labels
+        - Ducktheus name propagated to labels ✅
+        - Propagate global labels from config ✅
 
 ## Config/Functionality
     - Macros ✅
-
-## Tags
-    - Ducktheus name propagated to tags ❌
-    - Propagate global tags from config ❌
 
 ## Secrets
     - Support passing env-based secrets ❌
