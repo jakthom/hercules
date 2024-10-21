@@ -37,11 +37,6 @@ sources:
     materialize: true
     refreshIntervalSeconds: 5
 
-  - name: sample_logs
-    type: json
-    source: assets/logs.json
-    materialize: false
-
   - name: united_states_zip_codes
     type: csv
     source: https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv
@@ -62,11 +57,6 @@ metrics:
     #   sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1
     #   labels:
     #     - pickupLocation
-
-    - name: log_line_count
-      help: The total lines in the log file
-      enabled: true
-      sql: select count(*) from read_json_auto('assets/logs.json');
 
     - name: one_one_one_one
       help: Testing the one() macro
@@ -148,11 +138,21 @@ metrics:
         - 0.1
         - 0.5
         - 1
-        - 10
-        - 20
-        - 60
-        - 120
-        - 240
+        - 2
+        - 4
+        - 8
+        - 16
+        - 32
+        - 64
+        - 128
+        - 256
+        - 512
+        - 1024
+        - 2048
+        - 4096
+        - 8192
+        - 16384
+        - 32768
 
   summary:
     - name: virtual_warehouse_query_duration_seconds
