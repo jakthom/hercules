@@ -65,7 +65,7 @@ type MetricRegistry struct {
 	Histogram map[string]HistogramMetric
 }
 
-func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error {
+func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
 	for _, gauge := range mr.Gauge {
 		err := gauge.materializeWithConnection(conn)
 		if err != nil {
