@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 
 	"github.com/dbecorp/ducktheus/pkg/config"
+	"github.com/dbecorp/ducktheus/pkg/db"
 	"github.com/marcboeker/go-duckdb"
 	"github.com/rs/zerolog/log"
 )
@@ -23,23 +24,33 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not initialize duckdb connection")
 	}
-	ensureMacros(conf, conn)
-	ensureExtensions(conf, conn)
+	ensureMacros(conf.Macros, conn)
+	ensureExtensions(conf.Extensions, conn)
 	defer db.Close()
 	return db, conn
 }
 
-func ensureMacros(conf config.Config, conn *sql.Conn) {
-	for _, macro := range conf.Macros {
+func ensureMacros(macros []db.Macro, conn *sql.Conn) {
+	// Ensure built-in macros are present
+	for _, macro := range ducktheusMacros() {
+		macro.EnsureWithConnection(conn)
+	}
+	// Ensure configured macros are present
+	for _, macro := range macros {
 		macro.EnsureWithConnection(conn)
 	}
 }
 
-func ensureExtensions(conf config.Config, conn *sql.Conn) {
-	for _, coreExtension := range conf.Extensions.Core {
+func ensureExtensions(extensions db.Extensions, conn *sql.Conn) {
+	for _, coreExtension := range extensions.Core {
 		coreExtension.EnsureWithConnection(conn)
 	}
-	for _, communityExtension := range conf.Extensions.Community {
+	for _, communityExtension := range extensions.Community {
 		communityExtension.EnsureWithConnection(conn)
 	}
+}
+
+func ducktheusMacros() []db.Macro {
+	// Stub global macros
+	return []db.Macro{}
 }

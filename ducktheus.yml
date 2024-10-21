@@ -37,9 +37,9 @@ sources:
     refreshIntervalSeconds: 5
 
   - name: united_states_zip_codes
-    type: sql
-    source: select * from read_csv_auto('https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv')
-    refreshIntervalSeconds: 1000
+    type: csv
+    source: https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv
+    refreshIntervalSeconds: 100
 
 metrics:
   gauge:
