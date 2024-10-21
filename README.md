@@ -12,7 +12,7 @@ An OLAP-powered Prometheus Exporter
     - Consolidate metric definitions ✅
     - Interface/genericize metrics ❌
     - clean up code duplication ✅
-    - Make DEBUG flag actually work, flip log levels accordingly ❌
+    - Make DEBUG flag actually work, flip log levels accordingly ✅
     - Make middleware signature actually acceptable ✅
 
 ## DuckDB stuff
@@ -28,6 +28,7 @@ An OLAP-powered Prometheus Exporter
     - Refresh on time interval ✅
     - Refresh on each `select` ❌
     - Refresh on http-post (POST collector:9100/sources/$BLAH/refresh) ❌
+    - Support view-based sources
 
 ## Metrics
     - Support all Prometheus metric types
@@ -36,7 +37,8 @@ An OLAP-powered Prometheus Exporter
         - counters (vec) ✅
         - summaries (vec) ✅
     - Collector reregistration ✅
-    - Support named path groupings ❌
+    - Metric definition packages
+        - Support named path groupings ❌
     - Support push-based OTEL ❌
     - Labels
         - Hercules name propagated to labels ✅
