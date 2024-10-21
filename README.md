@@ -1,7 +1,6 @@
 # ducktheus_exporter
 A DuckDB-powered Prometheus Exporter
 
-
 # To-Do, Features
 ## Clean up application initialization
     - Database initialization ✅

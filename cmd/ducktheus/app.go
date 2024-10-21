@@ -17,6 +17,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -26,15 +27,17 @@ type DuckTheus struct {
 	config         config.Config
 	db             *sql.DB
 	conn           *sql.Conn
-	sources        []metrics.Source
 	metricRegistry *metrics.MetricRegistry
 }
 
 func (d *DuckTheus) configure() {
 	log.Debug().Msg("configuring ducktheus")
-	// Load application config
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	debug := os.Getenv(config.DEBUG)
+	if debug != "" && (debug == "true" || debug == "1" || debug == "True") {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
 	d.config, _ = config.GetConfig()
-	d.sources = d.config.Sources
 }
 
 func (d *DuckTheus) initializeFlock() {
@@ -42,14 +45,13 @@ func (d *DuckTheus) initializeFlock() {
 }
 
 func (d *DuckTheus) initializeSources() {
-	for _, source := range d.sources {
+	for _, source := range d.config.Sources {
 		source.InitializeWithConnection(d.conn)
 	}
 }
 
 func (d *DuckTheus) initializeRegistry() {
-	registry := metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
-	d.metricRegistry = registry
+	d.metricRegistry = metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
 }
 
 func (d *DuckTheus) Initialize() {
@@ -63,8 +65,7 @@ func (d *DuckTheus) Initialize() {
 
 func (d *DuckTheus) Run() {
 	mux := http.NewServeMux()
-	// Remove all the golang node defaults
-	prometheus.Unregister(collectors.NewGoCollector())
+	prometheus.Unregister(collectors.NewGoCollector()) // Remove golang node defaults
 	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistry, promhttp.Handler()))
 
 	srv := &http.Server{

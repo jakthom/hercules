@@ -2,6 +2,8 @@ package db
 
 import (
 	"database/sql"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Macro struct {
@@ -16,4 +18,5 @@ func (m *Macro) CreateOrReplaceSql() Sql {
 
 func (m *Macro) EnsureWithConnection(conn *sql.Conn) {
 	RunSqlQuery(conn, m.CreateOrReplaceSql())
+	log.Info().Interface("macro", m.Sql).Msg("macro ensured")
 }
