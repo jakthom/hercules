@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type SourceType string
 type MetricType string
 
 const (
@@ -32,10 +31,17 @@ func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryRe
 	rows, err := db.RunSqlQuery(conn, md.Sql)
 	var results []QueryResult
 	for rows.Next() {
-		var result QueryResult
-		if err := rows.Scan(&result.Labels, &result.Value); err != nil {
-			log.Error().Err(err).Msg("error when scanning query results")
-			return nil, err
+		result := QueryResult{}
+		if md.Labels == nil { // Scalar results
+			if err := rows.Scan(&result.Value); err != nil {
+				log.Error().Err(err).Msg("error when scanning query results")
+				return nil, err
+			}
+		} else {
+			if err := rows.Scan(&result.Labels, &result.Value); err != nil {
+				log.Error().Err(err).Msg("error when scanning query results")
+				return nil, err
+			}
 		}
 		results = append(results, result)
 	}

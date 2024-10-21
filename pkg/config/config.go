@@ -7,6 +7,7 @@ import (
 	"github.com/dbecorp/hercules/pkg/db"
 	"github.com/dbecorp/hercules/pkg/labels"
 	"github.com/dbecorp/hercules/pkg/metrics"
+	"github.com/dbecorp/hercules/pkg/source"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -34,7 +35,7 @@ type Config struct {
 	GlobalLabels labels.GlobalLabels       `json:"globalLabels"`
 	Extensions   db.Extensions             `json:"extensions"`
 	Macros       []db.Macro                `json:"macros"`
-	Sources      []metrics.Source          `json:"sources"`
+	Sources      []source.Source           `json:"sources"`
 	Metrics      metrics.MetricDefinitions `json:"metrics"`
 }
 
