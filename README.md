@@ -9,7 +9,7 @@ Hercules is a DuckDB-powered Prometheus exporter that supercharges metrics.
 
 **Generate enriched, labeled** metrics properly from the source; don't relabel using your favorite metrics database.
 
-**Embrace** the pantheon of metrics harvesting with Prometheus-compatible scrape targets that easily tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
+**Embrace** the pantheon of metrics harvesting using Prometheus-compatible scrape targets that easily tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
 
 
 # Getting Started
@@ -193,6 +193,12 @@ globalLabels:
 
 ### Embedded Analytics
 
+A byproduct of Hercules being ridiculously efficient is the capability to **materialize and serve a lot more metrics, from a lot more sources, using a single Prometheus scrape endpoint.**
+
+Serving a nontrivial number of BI and product-oriented metrics using industry-standard observability tools is entirely possible.
+
+BI and product metrics alongside your infrastructure and applications? Yup. Consolidated alerting without tool sprawl? That too.
+
 
 ### Other Hercules Niceties
 
@@ -204,3 +210,5 @@ globalLabels:
 
 
 # Further Resources
+
+Coming soon.
