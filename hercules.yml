@@ -46,7 +46,7 @@ sources:
 metrics:
   gauge:
     - name: nyc_pickup_location_fare_total
-      help: The total
+      help: Total NYC fares for the month of August by pickup location
       enabled: True
       sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1
       labels:

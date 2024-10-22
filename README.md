@@ -167,6 +167,8 @@ Macros are automatically ensured on startup and are useful for common activities
 - Parsing log lines
 - Reading useragent strings
 - Schematizing unstructured data
+- Enriching results with third-party tooling
+- Tokenizing attributes
 
 
 **Example Macro Definition**
