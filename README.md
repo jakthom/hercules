@@ -94,7 +94,7 @@ metrics:
   histogram:
     - name: query_duration_seconds
       help: Histogram of Snowflake virtual warehouse query duration seconds
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value from snowflake_query_history;
+      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value;
       labels:
         - user
         - warehouse
@@ -114,7 +114,7 @@ metrics:
   summary:
     - name: virtual_warehouse_query_duration_seconds
       help: Summary of Snowflake virtual warehouse query duration seconds
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value from snowflake_query_history;
+      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value;
       labels:
         - user
         - warehouse
@@ -133,7 +133,7 @@ metrics:
   counter:
     - name: queries_executed_count
       help: The count of Snowflake queries executed by user and warehouse
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, 1 as value from snowflake_query_history;
+      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, 1 as value;
       labels:
         - user
         - warehouse
@@ -146,7 +146,10 @@ Hercules **sources** and **metrics** can be *externally enriched*, leading to mo
 
 Don't run expensive, time-consuming relabel and join operations on your centralized Prometheus data store. Integrate, calculate, enrich, and label on the edge.
 
+**Example Enriched Source**
+
 ```
+sources:
   - name: user_signups
     type: sql
     source: select s.timestamp, s.userId, u.name from signups s join users u on s.userId = u.id
