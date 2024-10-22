@@ -1,3 +1,4 @@
 *.db
 *.wal
+.tmp/*
 scratch/*
