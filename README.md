@@ -142,7 +142,7 @@ metrics:
 
 ### Metric Enrichment
 
-Hercules **sources** and **metrics** can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), properly-labeled metrics.
+Hercules **sources** and **metrics** can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), ***properly-labeled*** metrics.
 
 Don't run expensive, time-consuming relabel and join operations on your centralized Prometheus data store. Integrate, calculate, enrich, and label on the edge.
 
