@@ -61,13 +61,13 @@ sources:
 
 ### Metrics
 
-Each Hercules metric is define in `yml`, using `sql` in a number of supported dialects.
+Metric definitions are `yml` and use `sql` in a number of supported dialects to aggregate, enrich, and materialize metric values.
 
 Metric materialization expects two fields in the query resultset: a `struct` field of `tags` and a `value` column corresponding to the metric value.
 
-#### Metric Types
+#### Prometheus Metric Types
 
-Hercules supports the following Prometheus metric types:
+Hercules supports the following metric types:
 
 - Gauge metrics ✅
 - Counter metrics ✅
@@ -170,7 +170,7 @@ Macros are automatically ensured on startup and are useful for common activities
 
 ```
 macros:
-  - sql: create or replace macro parse_tomcat_log() AS ( $PARSING_LOGIC );
+  - sql: create or replace macro parse_tomcat_log(logLine) AS ( $PARSING_LOGIC );
 ```
 
 
