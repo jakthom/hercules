@@ -21,10 +21,8 @@ extensions:
     - name: prql # Pipelined Relational Query Language
 
 macros:
-  - name: one
-    sql: create or replace macro one() AS (SELECT 1);
-  - name: two
-    sql: create or replace macro two() AS (SELECT 2);
+  - sql: create or replace macro one() AS (SELECT 1);
+  - sql: create or replace macro two() AS (SELECT 2);
 
 sources:
   - name: snowflake_query_history

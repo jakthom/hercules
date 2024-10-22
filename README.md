@@ -5,12 +5,11 @@
 Hercules is a DuckDB-powered Prometheus exporter that supercharges metrics.
 
 
+**Generate prometheus-compatible metrics** from parquet, csv files, json logs, data lakes, databases, http endpoints, and much more.
 
-**Generate** prometheus-compatible metrics from parquet, csv files, json logs, data lakes, databases, http endpoints, and much more.
+**Generate enriched, labeled** metrics properly from the source; don't relabel using your favorite metrics database.
 
-**Enrich and label** properly at the source, not relabels in your metrics database.
-
-**Smash** your metrics harvesting with Prometheus-compatible scrape targets that can tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
+**Embrace** the pantheon of metrics harvesting with Prometheus-compatible scrape targets that easily tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
 
 
 # Getting Started
@@ -40,13 +39,14 @@ make run
 Hercules materializes metrics from data sources such as:
 - **Local files** (parquet, json, csv, xlsx, etc)
 - **Object storage** (GCS, S3, Azure Blob)
-- **Data lakes** (Iceberg, Delta)
-- **Databases** (PostgreSQL, MySQL, SQLite)
 - **HTTP endpoints**
+- **Databases** (PostgreSQL, MySQL, SQLite)
+- **Data lakes** (Iceberg, Delta)
+- **Data warehouses** (BigQuery)
 - **Arrow IPC buffers**
 
 
-Sources are represented as either `views` or `tables` - depending on desired performance and specified latency requirements.
+Sources can be represented as `views` or `tables` depending on desired performance and specified latency requirements.
 
 **Example source definition:**
 
@@ -61,7 +61,7 @@ sources:
 
 ### Metrics
 
-Each Hercules metric is defined using **sql** in a number of supported dialects.
+Each Hercules metric is define in `yml`, using `sql` in a number of supported dialects.
 
 Metric materialization expects two fields in the query resultset: a `struct` field of `tags` and a `value` column corresponding to the metric value.
 
@@ -142,15 +142,60 @@ metrics:
 
 ### Metric Enrichment
 
-Hercules **sources** and **metrics** can both be joined with external enrichments, leading to more ***thorough***, ***accurate*** (or is it precise?), properly-labeled metrics.
+Hercules **sources** and **metrics** can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), properly-labeled metrics.
 
-Don't run expensive, time-consuming operations on your centralized Prometheus data store - enrich and label on the edge.
+Don't run expensive, time-consuming relabel and join operations on your centralized Prometheus data store. Integrate, calculate, enrich, and label on the edge.
+
+```
+  - name: user_signups
+    type: sql
+    source: select s.timestamp, s.userId, u.name from signups s join users u on s.userId = u.id
+    materialize: true
+    refreshIntervalSeconds: 5
+```
 
 
 ### Macros
 
-Hercules
+Keep metric definitions DRY using Hercules macros.
+
+Macros are automatically ensured on startup and are useful for common activities such as:
+
+- Parsing log lines
+- Reading useragent strings
+- Schematizing unstructured data
 
 
-### Global Prometheus Tags
+**Example Macro Definition**
 
+```
+macros:
+  - sql: create or replace macro parse_tomcat_log() AS ( $PARSING_LOGIC );
+```
+
+
+### Global Labels
+
+Hercules allows global labels to be propagated to all configured metrics. So you don't have to guess where the metric came from.
+
+**Example label definition**
+```
+globalLabels:
+  - cell: ausw1
+  - env: dev
+```
+
+
+### Embedded Analytics
+
+
+### Other Hercules Niceties
+
+- Calculate prometheus-compatible metrics from geospatial data
+- Coerce unweildy files to useful statistics using full-text search
+- Enhance metric labeling using vector similarity search
+- [Don't start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/) if you don't want to
+- Use modern [pipe sql syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/) or [prql](https://prql-lang.org/) for defining and transforming your metrics
+
+
+# Further Resources
