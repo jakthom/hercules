@@ -1,18 +1,19 @@
 # Hercules
 
-Hercules is a DuckDB-powered Prometheus exporter that makes metrics harvesting go vroom.
+![heracles](assets/heracles.png)
+
+Hercules is a DuckDB-powered Prometheus exporter that supercharges metrics.
 
 
 
 **Generate** prometheus-compatible metrics from parquet, csv files, json logs, data lakes, databases, http endpoints, and much more.
 
-**Enrich and label** your metrics properly at the source, not in your metrics database.
+**Enrich and label** properly at the source, not relabels in your metrics database.
 
-**Supercharge** your metrics harvesting with Prometheus-compatible scrape targets that can run [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
+**Smash** your metrics harvesting with Prometheus-compatible scrape targets that can tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
 
 
 # Getting Started
-
 
 
 ### Prerequisites
@@ -29,7 +30,7 @@ make run
 
 ### Get Prometheus Metrics
 
-[localhost:9100/metrics](localhost:9100/metric])
+[localhost:9100/metrics](http://localhost:9100/metrics)
 
 
 # Features
@@ -37,15 +38,15 @@ make run
 ### Sources
 
 Hercules materializes metrics from data sources such as:
-- Local files (parquet, json, csv, xlsx, etc)
-- Object storage (GCS, S3, Azure Blob)
-- Data lakes (Iceberg, Delta)
-- Databases (PostgreSQL, MySQL, SQLite)
-- HTTP endpoints
-- Arrow IPC buffers
+- **Local files** (parquet, json, csv, xlsx, etc)
+- **Object storage** (GCS, S3, Azure Blob)
+- **Data lakes** (Iceberg, Delta)
+- **Databases** (PostgreSQL, MySQL, SQLite)
+- **HTTP endpoints**
+- **Arrow IPC buffers**
 
 
-Hercules sources are represented as either `views` or `tables` - depending on desired performance and specified latency requirements.
+Sources are represented as either `views` or `tables` - depending on desired performance and specified latency requirements.
 
 **Example source definition:**
 
@@ -62,7 +63,7 @@ sources:
 
 Each Hercules metric is defined using **sql** in a number of supported dialects.
 
-Metric definitions require two fields to be returned in the resultset: a `struct` field of `tags` and a `value` column corresponding to the metric value.
+Metric materialization expects two fields in the query resultset: a `struct` field of `tags` and a `value` column corresponding to the metric value.
 
 #### Metric Types
 
@@ -107,6 +108,7 @@ metrics:
         - 16
 ```
 
+
 **Example Summary Metric Definition**
 ```
   summary:
@@ -125,6 +127,7 @@ metrics:
         - 0.99
 ```
 
+
 **Example Counter Metric Definition**
 ```
   counter:
@@ -136,8 +139,18 @@ metrics:
         - warehouse
 ```
 
-### Enrichment
 
-Hercules **sources** and **metrics** can both be joined with *external enrichments*, leading to more ***thorough***, ***accurate*** (or is it precise?) metrics.
+### Metric Enrichment
 
-By enriching your metrics on the edge you no longer have to run *expensive, time-consuming operations on your centralized Prometheus data store.*
+Hercules **sources** and **metrics** can both be joined with external enrichments, leading to more ***thorough***, ***accurate*** (or is it precise?), properly-labeled metrics.
+
+Don't run expensive, time-consuming operations on your centralized Prometheus data store - enrich and label on the edge.
+
+
+### Macros
+
+Hercules
+
+
+### Global Prometheus Tags
+
