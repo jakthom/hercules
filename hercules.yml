@@ -3,7 +3,6 @@ version: 1
 name: edge
 debug: false
 port: 9100
-db: hercules.db
 
 globalLabels:
   - cell: ausw1

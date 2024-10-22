@@ -91,5 +91,9 @@ func (d *Hercules) Run() {
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal().Stack().Err(err).Msg("server forced to shutdown")
+		d.db.Close()
+		os.Remove(d.config.Db)
 	}
+	d.db.Close()
+	os.Remove(d.config.Db)
 }
