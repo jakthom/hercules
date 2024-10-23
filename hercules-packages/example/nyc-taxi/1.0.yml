@@ -1,5 +1,5 @@
 name: nyc-taxi
-version: 1.0.0
+version: 1.0
 
 sources:
   - name: nyc_yellow_taxi_june_2024
@@ -10,9 +10,24 @@ sources:
 
 metrics:
   gauge:
-    - name: nyc_pickup_location_fare_total
-      help: Total NYC fares for the month of August by pickup location
+    - name: nyc_taxi_pickup_location_fare_total
+      help: Total NYC fares for the month of July by pickup location
       enabled: True
       sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1
       labels:
         - pickupLocation
+
+  summary:
+    - name: nyc_taxi_pickup_location_fares # Note this uses prometheus to do the histogram calculation. For better performance histograms can be pre-calculated and represented as a gauge.
+      help: Total NYC fares for the month of July by pickup location
+      enabled: True
+      sql: select struct_pack(pickupLocation := PULocationID::text), fare_amount as val from nyc_yellow_taxi_june_2024
+      labels:
+        - pickupLocation
+      objectives:
+        - 0.001
+        - 0.05
+        - 0.01
+        - 0.5
+        - 0.9
+        - 0.99

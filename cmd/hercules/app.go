@@ -30,6 +30,7 @@ type Hercules struct {
 	packages       []herculespackage.Package
 	conn           *sql.Conn
 	metricRegistry *metrics.MetricRegistry
+	debug          bool
 }
 
 func (d *Hercules) configure() {
@@ -37,6 +38,7 @@ func (d *Hercules) configure() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	debug := os.Getenv(config.DEBUG)
 	if debug != "" && (debug == "true" || debug == "1" || debug == "True") {
+		d.debug = true
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 	trace := os.Getenv(config.TRACE)
@@ -122,7 +124,9 @@ func (d *Hercules) Run() {
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal().Stack().Err(err).Msg("server forced to shutdown")
 		d.db.Close()
-		os.Remove(d.config.Db)
+		if !d.debug {
+			os.Remove(d.config.Db)
+		}
 	}
 	d.db.Close()
 	os.Remove(d.config.Db)

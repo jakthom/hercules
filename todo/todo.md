@@ -50,3 +50,7 @@
 ## Package distribution stuff
     - Pull from public/s3-backed, nicely-named package registry ❌
     - CLI for authoring, linting, and publishing packages? Maybe? idk, not yet. ❌
+
+## Outstanding questions
+    - Should package names be prometheus metric name prefixes?
+    - 

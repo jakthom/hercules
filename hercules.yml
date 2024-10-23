@@ -9,7 +9,7 @@ globalLabels:
   - env: $ENV # Inject prometheus labels from env var
 
 packages:
-  - package: hercules-packages/snowflake/performance/1.0.yml
+  # - package: hercules-packages/snowflake/performance/1.0.yml
   - package: hercules-packages/example/nyc-taxi/1.0.yml
 
 extensions:
@@ -26,14 +26,6 @@ extensions:
 
 macros:
   - sql: create or replace macro one() AS (SELECT 1);
-  - sql: create or replace macro two() AS (SELECT 2);
-
-sources:
-  - name: united_states_zip_codes
-    type: csv
-    source: https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv
-    materialize: true
-    refreshIntervalSeconds: 100
 
 metrics:
   gauge:
@@ -43,16 +35,3 @@ metrics:
       sql: select struct_pack(user := 'yo') as labels, one();
       labels:
         - user
-
-    - name: two_two_two_two
-      help: Testing the two() macro
-      enabled: true
-      sql: select struct_pack(user := 'yeeee') as labels, two();
-      labels:
-        - user
-
-    - name: united_states_zip_codes_total
-      help: The number of US zip codes
-      sql: select struct_pack(state := state) as labels, count(*) as value from united_states_zip_codes group by 1;
-      labels:
-        - state
