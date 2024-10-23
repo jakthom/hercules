@@ -5,8 +5,8 @@ debug: false
 port: 9100
 
 globalLabels:
-  - cell: ausw1
-  - env: dev
+  - cell: ausw1 # Inject prometheus labels from config
+  - env: $ENV # Inject prometheus labels from env var
 
 packages:
   - location: hercules-packages/snowflake/performance/1.0.yml
