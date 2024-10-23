@@ -211,15 +211,11 @@ packages:
 
 A byproduct of Hercules being ridiculously efficient is the capability to **materialize and serve a lot more metrics, from a lot more sources, using a single Prometheus scrape endpoint.**
 
-Serving a nontrivial number of BI and product-oriented metrics using industry-standard observability tools is entirely possible.
-
-BI and product metrics alongside your infrastructure and applications? Yup. Consolidated alerting without tool sprawl? That too.
-
 
 ### Other Hercules Niceties
 
 - Calculate prometheus-compatible metrics from geospatial data
-- Coerce unweildy files to useful statistics using full-text search
+- Coerce unwieldy files to useful statistics using full-text search
 - Enhance metric labeling using vector similarity search
 - [Don't start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/) if you don't want to
 - Use modern [pipe sql syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/) or [prql](https://prql-lang.org/) for defining and transforming your metrics
