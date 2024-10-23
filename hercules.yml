@@ -9,7 +9,7 @@ globalLabels:
   - env: dev
 
 packages:
-  location: hercules-snowflake-pkg.yml
+  location: packages/hercules-snowflake-pkg.yml
   variables:
     name: blah
 

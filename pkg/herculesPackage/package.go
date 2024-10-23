@@ -27,12 +27,18 @@ type Package struct {
 }
 
 func (p *Package) InitializeWithConnection(conn *sql.Conn) error {
-	// Ensure extensions
-	db.EnsureExtensionsWithConnection(p.Extensions, conn)
-	// Ensure macros
-	db.EnsureMacrosWithConnection(p.Macros, conn)
-	// Ensure sources
-	source.InitializeSourcesWithConnection(p.Sources, conn)
+	if len(p.Name) > 0 {
+		log.Info().Interface("package", p.Name).Msg("initializing " + p.Name + " package")
+		// Ensure extensions
+		db.EnsureExtensionsWithConnection(p.Extensions, conn)
+		// Ensure macros
+		db.EnsureMacrosWithConnection(p.Macros, conn)
+		// Ensure sources
+		source.InitializeSourcesWithConnection(p.Sources, conn)
+		log.Info().Interface("package", p.Name).Msg(p.Name + " package initialized")
+	} else {
+		log.Trace().Msg("empty package detected - skipping initialization")
+	}
 	return nil
 }
 
@@ -48,7 +54,8 @@ func (p *PackageConfig) GetPackage() (Package, error) {
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("could not read config - using defaults")
+		log.Debug().Stack().Err(err).Msg("could not load package from location " + p.Location)
+		return Package{}, err
 	}
 	if err := viper.Unmarshal(pkg); err != nil {
 		log.Error().Stack().Err(err)

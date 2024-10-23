@@ -22,7 +22,7 @@ func (m *Macro) ensureWithConnection(conn *sql.Conn) {
 
 		log.Fatal().Err(err).Msg("could not ensure macro")
 	}
-	log.Info().Interface("macro", m.Sql).Msg("macro ensured")
+	log.Debug().Interface("macro", m.Sql).Msg("macro ensured")
 }
 
 // Ensure all macros. Blow up if macro cannot be ensured

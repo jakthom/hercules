@@ -51,11 +51,11 @@ func (s *Source) createOrReplaceViewSql() db.Sql {
 func (s *Source) refreshWithConn(conn *sql.Conn) error {
 	if s.Materialize {
 		_, err := db.RunSqlQuery(conn, s.createOrReplaceTableSql())
-		log.Info().Interface("source", s.Name).Msg("source refreshed")
+		log.Debug().Interface("source", s.Name).Msg("source refreshed")
 		return err
 	} else {
 		_, err := db.RunSqlQuery(conn, s.createOrReplaceViewSql())
-		log.Info().Interface("source", s.Name).Msg("source refreshed")
+		log.Debug().Interface("source", s.Name).Msg("source refreshed")
 		return err
 	}
 }
