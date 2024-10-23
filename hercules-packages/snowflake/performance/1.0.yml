@@ -1,12 +1,19 @@
+# Note - this package relies on Snowflake account usage views being snapshot to S3 as parquet.
+# The following snapshots will need to be in S3
+#   - SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.TASK_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.METERING_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.ALERT_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.LOAD_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.MATERIALIZED_VIEW_REFRESH_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.SERVERLESS_TASK_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.DATA_TRANSFER_HISTORY
+#   - SNOWFLAKE.ACCOUNT_USAGE.DOCUMENT_AI_USAGE_HISTORY
+
 name: snowflake-performance
 version: 1.0
-
-extensions:
-  core:
-    - name: inet
-
-  community:
-    - name: chsql # Clickhouse macros and functions
 
 macros:
   - sql: create or replace macro one() AS (SELECT 1);
@@ -21,7 +28,7 @@ sources:
 metrics:
   gauge:
     - name: query_status_count
-      help: Queries executed and their associated status, by user and warehouse
+      help: Queries executed and their associated status by user and warehouse
       enabled: true
       sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name, status := lower(execution_status)) as labels, count(*) as value group by 1;
       labels:
