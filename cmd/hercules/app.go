@@ -79,7 +79,12 @@ func (d *Hercules) initializePackages() {
 }
 
 func (d *Hercules) initializeRegistry() {
-	d.metricRegistry = metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
+	// Merge metric definitions from all packages
+	metricDefinitions := metrics.MetricDefinitions{}
+	for _, pkg := range d.packages {
+		metricDefinitions.Merge(pkg.Metrics)
+	}
+	d.metricRegistry = metrics.NewMetricRegistry(metricDefinitions, d.config.InstanceLabels())
 }
 
 func (d *Hercules) Initialize() {
