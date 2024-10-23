@@ -43,18 +43,18 @@ func (p *Package) InitializeWithConnection(conn *sql.Conn) error {
 }
 
 type PackageConfig struct {
-	Location  string                   `json:"location"`
+	Package   string                   `json:"package"`
 	Variables HerculesPackageVariables `json:"variables"`
 }
 
 func (p *PackageConfig) GetPackage() (Package, error) {
 	pkg := &Package{}
 	// Try to get configuration from file
-	viper.SetConfigFile(p.Location)
+	viper.SetConfigFile(p.Package)
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Debug().Stack().Err(err).Msg("could not load package from location " + p.Location)
+		log.Debug().Stack().Err(err).Msg("could not load package from location " + p.Package)
 		return Package{}, err
 	}
 	if err := viper.Unmarshal(pkg); err != nil {

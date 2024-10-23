@@ -9,11 +9,12 @@ globalLabels:
   - env: dev
 
 packages:
-  - location: hercules-packages/snowflake/performance/1.0.yml
-  - location: hercules-packages/snowflake/security/1.0.yml
+  - package: hercules-packages/snowflake/performance/1.0.yml
+  - package: hercules-packages/example/nyc-taxi/1.0.yml
 
 extensions:
   core:
+    - name: inet
     - name: vss
     - name: icu
     - name: fts
@@ -21,6 +22,7 @@ extensions:
   community:
     - name: lindel # Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
     - name: prql # Pipelined Relational Query Language
+    - name: chsql # Clickhouse macros and functions
 
 macros:
   - sql: create or replace macro one() AS (SELECT 1);
