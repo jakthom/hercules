@@ -9,9 +9,8 @@ globalLabels:
   - env: dev
 
 packages:
-  location: packages/hercules-snowflake-pkg.yml
-  variables:
-    name: blah
+  - location: hercules-packages/snowflake-performance.yml
+  - location: hercules-packages/example-nyc-taxi.yml
 
 extensions:
   core:
@@ -34,21 +33,8 @@ sources:
     materialize: true
     refreshIntervalSeconds: 100
 
-  - name: nyc_yellow_taxi_june_2024
-    type: parquet
-    source: https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-07.parquet
-    materialize: true
-    refreshIntervalSeconds: 100
-
 metrics:
   gauge:
-    - name: nyc_pickup_location_fare_total
-      help: Total NYC fares for the month of August by pickup location
-      enabled: True
-      sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1
-      labels:
-        - pickupLocation
-
     - name: one_one_one_one
       help: Testing the one() macro
       enabled: true
