@@ -1,8 +1,18 @@
 package labels
 
-import "maps"
+import (
+	"maps"
+	"os"
+)
 
 type GlobalLabels map[string]string
+
+func InjectLabelFromEnv(labelVal string) string {
+	if string(labelVal[0]) == "$" {
+		return os.Getenv(string(labelVal[1:]))
+	}
+	return labelVal
+}
 
 func (l GlobalLabels) LabelNames() []string {
 	var labelNames []string

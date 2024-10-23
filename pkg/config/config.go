@@ -46,7 +46,7 @@ func (c *Config) InstanceLabels() labels.GlobalLabels {
 	globalLabels := labels.GlobalLabels{}
 	globalLabels[HERCULES_NAME_LABEL] = c.Name
 	for k, v := range c.GlobalLabels {
-		globalLabels[k] = v
+		globalLabels[k] = labels.InjectLabelFromEnv(v)
 	}
 	return globalLabels
 }
