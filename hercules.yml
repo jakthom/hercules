@@ -9,8 +9,8 @@ globalLabels:
   - env: dev
 
 packages:
-  - location: hercules-packages/snowflake-performance.yml
-  - location: hercules-packages/example-nyc-taxi.yml
+  - location: hercules-packages/snowflake/performance/1.0.yml
+  - location: hercules-packages/snowflake/security/1.0.yml
 
 extensions:
   core:
