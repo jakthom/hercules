@@ -24,7 +24,7 @@ You'll need `go >=1.22` on your machine.
 ```
 git clone git@github.com:dbecorp/hercules.git && cd hercules
 
-ENV=$(whoami) make run
+make run
 ```
 
 ### Get Prometheus Metrics
@@ -181,13 +181,16 @@ macros:
 
 ### Global Labels
 
-Hercules allows global labels to be propagated to all configured metrics. So you don't have to guess where the metric came from.
+Hercules allows global labels to be propagated to all configured metrics. So you don't have to guess where a metric came from.
+
+Labels can also be propagated directly from environment variables.
 
 **Example label definition**
 ```
 globalLabels:
   - cell: ausw1
   - env: dev
+  - region: $REGION # Propagate the value of an environment variable titled `REGION` to prometheus labels
 ```
 
 ### Packages
