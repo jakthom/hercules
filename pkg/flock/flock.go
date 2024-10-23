@@ -6,7 +6,6 @@ import (
 	"database/sql/driver"
 
 	"github.com/dbecorp/hercules/pkg/config"
-	"github.com/dbecorp/hercules/pkg/db"
 	"github.com/marcboeker/go-duckdb"
 	"github.com/rs/zerolog/log"
 )
@@ -26,29 +25,4 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	}
 	defer db.Close()
 	return db, conn
-}
-
-func EnsureMacrosWithConnection(macros []db.Macro, conn *sql.Conn) {
-	// Ensure built-in macros are present
-	for _, macro := range herculesMacros() {
-		macro.EnsureWithConnection(conn)
-	}
-	// Ensure configured macros are present
-	for _, macro := range macros {
-		macro.EnsureWithConnection(conn)
-	}
-}
-
-func EnsureExtensionsWithConnection(extensions db.Extensions, conn *sql.Conn) {
-	for _, coreExtension := range extensions.Core {
-		coreExtension.EnsureWithConnection(conn)
-	}
-	for _, communityExtension := range extensions.Community {
-		communityExtension.EnsureWithConnection(conn)
-	}
-}
-
-func herculesMacros() []db.Macro {
-	// Stub global macros
-	return []db.Macro{}
 }

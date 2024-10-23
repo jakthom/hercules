@@ -1,4 +1,12 @@
+name: snowflake
 version: 1.0.0
+
+extensions:
+  core:
+    - name: inet
+
+  community:
+    - name: chsql # Clickhouse macros and functions
 
 macros:
   - sql: create or replace macro one() AS (SELECT 1);

@@ -1,6 +1,8 @@
 package herculespackage
 
 import (
+	"database/sql"
+
 	"github.com/dbecorp/hercules/pkg/db"
 	"github.com/dbecorp/hercules/pkg/metrics"
 	"github.com/dbecorp/hercules/pkg/source"
@@ -14,18 +16,27 @@ type HerculesPackageVariables map[string]interface{}
 // It can be downloaded from remote sources or shipped alongside hercules.
 
 type Package struct {
+	Name       string                    `json:"name"`
 	Version    string                    `json:"version"`
 	Variables  HerculesPackageVariables  `json:"variables"`
-	Extensions []db.Extensions           `json:"extensions"`
+	Extensions db.Extensions             `json:"extensions"`
 	Macros     []db.Macro                `json:"macros"`
 	Sources    []source.Source           `json:"sources"`
 	Metrics    metrics.MetricDefinitions `json:"metrics"`
 	// TODO -> Package-level secrets
 }
 
+func (p *Package) InitializeWithConnection(conn *sql.Conn) error {
+	// Ensure extensions
+	db.EnsureExtensionsWithConnection(p.Extensions, conn)
+	// Ensure macros
+	db.EnsureMacrosWithConnection(p.Macros, conn)
+	// Ensure sources
+	source.InitializeSourcesWithConnection(p.Sources, conn)
+	return nil
+}
+
 type PackageConfig struct {
-	Name      string                   `json:"name"`
-	Type      string                   `json:"type"` // s3, gcs, filesystem, etcd, consul
 	Location  string                   `json:"location"`
 	Variables HerculesPackageVariables `json:"variables"`
 }
@@ -44,12 +55,3 @@ func (p *PackageConfig) GetPackage() (Package, error) {
 	}
 	return *pkg, nil
 }
-
-// func newPackageFromConfig(config HerculesPackageConfig) HerculesPackage {
-
-// }
-
-// func NewHerculesPackage(config HerculesPackageConfig) HerculesPackage {
-// 	pkg
-// 	return p
-// }

@@ -50,7 +50,7 @@ func (d *Hercules) initializeFlock() {
 	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
-func (d *Hercules) initializePackages() {
+func (d *Hercules) loadPackages() {
 	pkgs := []herculespackage.Package{}
 	for _, pkgConfig := range d.config.Packages {
 		pkg, err := pkgConfig.GetPackage()
@@ -59,16 +59,22 @@ func (d *Hercules) initializePackages() {
 		}
 		pkgs = append(pkgs, pkg)
 	}
+	// Represent core configuration via a package
+	pkgs = append(pkgs, herculespackage.Package{
+		Name:       "core",
+		Version:    "1.0.0",
+		Extensions: d.config.Extensions,
+		Macros:     d.config.Macros,
+		Sources:    d.config.Sources,
+		Metrics:    d.config.Metrics,
+	})
 	d.packages = pkgs
+
 }
 
-func (d *Hercules) initializeExtensions() {}
-
-func (d *Hercules) initializeMacros() {}
-
-func (d *Hercules) initializeSources() {
-	for _, source := range d.config.Sources {
-		source.InitializeWithConnection(d.conn)
+func (d *Hercules) initializePackages() {
+	for _, p := range d.packages {
+		p.InitializeWithConnection(d.conn)
 	}
 }
 
@@ -80,10 +86,8 @@ func (d *Hercules) Initialize() {
 	log.Debug().Msg("initializing Hercules")
 	d.configure()
 	d.initializeFlock()
+	d.loadPackages()
 	d.initializePackages()
-	d.initializeExtensions()
-	d.initializeMacros()
-	d.initializeSources()
 	d.initializeRegistry()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }

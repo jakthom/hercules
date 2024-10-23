@@ -9,20 +9,17 @@ globalLabels:
   - env: dev
 
 packages:
-  - name: snowflake
-    location: hercules-snowflake-pkg.yml
-    variables:
-      name: blah
+  location: hercules-snowflake-pkg.yml
+  variables:
+    name: blah
 
 extensions:
   core:
-    - name: inet
     - name: vss
     - name: icu
     - name: fts
 
   community:
-    - name: chsql # Clickhouse macros and functions
     - name: lindel # Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
     - name: prql # Pipelined Relational Query Language
 
