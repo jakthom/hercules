@@ -1,12 +1,13 @@
 .PHONY: run debug help
 VERSION:=$(shell cat .VERSION)
+ENV:=$(shell whoami)
 HERCULES_DIR="./cmd/hercules/"
 
 build: ## Build hercules locally
 	CGO_ENABLED=1 go build -ldflags="-X main.VERSION=$(VERSION)" -o hercules $(HERCULES_DIR)
 
 run: ## Run hercules locally
-	CGO_ENABLED=1 go run -ldflags="-X 'main.VERSION=x.x.dev'" $(HERCULES_DIR)
+	CGO_ENABLED=1 ENV=$(ENV) go run -ldflags="-X 'main.VERSION=x.x.dev'" $(HERCULES_DIR)
 
 debug: ## Run hercules locally with debug
 	CGO_ENABLED=1 DEBUG=1 go run -ldflags="-X 'main.VERSION=x.x.dev'" $(HERCULES_DIR)
