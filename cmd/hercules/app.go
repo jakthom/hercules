@@ -12,6 +12,7 @@ import (
 
 	"github.com/dbecorp/hercules/pkg/config"
 	"github.com/dbecorp/hercules/pkg/flock"
+	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
 	metrics "github.com/dbecorp/hercules/pkg/metrics"
 	"github.com/dbecorp/hercules/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,6 +27,7 @@ var VERSION string
 type Hercules struct {
 	config         config.Config
 	db             *sql.DB
+	packages       []herculespackage.Package
 	conn           *sql.Conn
 	metricRegistry *metrics.MetricRegistry
 }
@@ -48,21 +50,49 @@ func (d *Hercules) initializeFlock() {
 	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
-func (d *Hercules) initializeSources() {
-	for _, source := range d.config.Sources {
-		source.InitializeWithConnection(d.conn)
+func (d *Hercules) loadPackages() {
+	pkgs := []herculespackage.Package{}
+	for _, pkgConfig := range d.config.Packages {
+		pkg, err := pkgConfig.GetPackage()
+		if err != nil {
+			log.Error().Err(err).Msg("could not get package")
+		}
+		pkgs = append(pkgs, pkg)
+	}
+	// Represent core configuration via a package
+	pkgs = append(pkgs, herculespackage.Package{
+		Name:       "core",
+		Version:    "1.0.0",
+		Extensions: d.config.Extensions,
+		Macros:     d.config.Macros,
+		Sources:    d.config.Sources,
+		Metrics:    d.config.Metrics,
+	})
+	d.packages = pkgs
+
+}
+
+func (d *Hercules) initializePackages() {
+	for _, p := range d.packages {
+		p.InitializeWithConnection(d.conn)
 	}
 }
 
 func (d *Hercules) initializeRegistry() {
-	d.metricRegistry = metrics.NewMetricRegistry(d.config.Metrics, d.config.InstanceLabels())
+	// Merge metric definitions from all packages
+	metricDefinitions := metrics.MetricDefinitions{}
+	for _, pkg := range d.packages {
+		metricDefinitions.Merge(pkg.Metrics)
+	}
+	d.metricRegistry = metrics.NewMetricRegistry(metricDefinitions, d.config.InstanceLabels())
 }
 
 func (d *Hercules) Initialize() {
 	log.Debug().Msg("initializing Hercules")
 	d.configure()
 	d.initializeFlock()
-	d.initializeSources()
+	d.loadPackages()
+	d.initializePackages()
 	d.initializeRegistry()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }

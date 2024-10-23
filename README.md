@@ -190,6 +190,19 @@ globalLabels:
   - env: dev
 ```
 
+### Packages
+
+Hercules includes a yml-based package loader which means extensions, macros, sources, and metrics can be logically grouped and distributed.
+
+Starter packages can be found in the [hercules-packages](/hercules-packages/) directory.
+
+**Example package registration**
+
+```
+packages:
+  - location: hercules-packages/snowflake-performance.yml
+```
+
 
 ### Embedded Analytics
 

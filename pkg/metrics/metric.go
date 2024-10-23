@@ -58,6 +58,13 @@ type MetricDefinitions struct {
 	Histogram []HistogramMetricDefinition `json:"histogram"`
 }
 
+func (m *MetricDefinitions) Merge(metricDefinitions MetricDefinitions) {
+	m.Gauge = append(m.Gauge, metricDefinitions.Gauge...)
+	m.Counter = append(m.Counter, metricDefinitions.Counter...)
+	m.Summary = append(m.Summary, metricDefinitions.Summary...)
+	m.Histogram = append(m.Histogram, metricDefinitions.Histogram...)
+}
+
 type MetricRegistry struct {
 	Gauge     map[string]GaugeMetric
 	Counter   map[string]CounterMetric

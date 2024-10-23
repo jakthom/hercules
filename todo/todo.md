@@ -4,22 +4,24 @@
 ## Code stuff
     - Interface/genericize metrics ❌
 
-## DuckDB stuff
+## Database stuff
     - Support ATTACH-ing s3/gcs-based databases ❌
     - Support duckdb secrets registration ❌
+    - Namespace all packages using a database so they don't collide ❌
 
 ## Sources
     - Materialize as table/view ❌
     - Refresh on each `select` ❌
     - Refresh on http-post (POST collector:9100/sources/$BLAH/refresh) ❌
-    - Support view-based sources
+    - Support view-based sources ✅
 
 ## Metrics
     - Handle scalar values well ✅
-    - Bail if a single metric cannot be materialized, so remaining metrics can be ❌
+    - Continue materializing metrics if a single metric cannot be materialized instead of blowing up ✅
     - Genericize/interface metrics ❌
     - Metric definition packages
         - Support named path groupings ❌
+        - Support package
     - Support push-based OTEL ❌
 
 ## Secrets
@@ -36,7 +38,7 @@
     - config validation (run through a local duckdb) ❌
 
 ## Tests dude
-    - Write them
+    - Write them ❌
 
 ## Distribution stuff
     - Build docker and publish to ghcr.io ❌
@@ -44,3 +46,7 @@
     - Tests and badge ❌
     - Lint and badge ❌
     - Codespaces ❌
+
+## Package distribution stuff
+    - Pull from public/s3-backed, nicely-named package registry ❌
+    - CLI for authoring, linting, and publishing packages? Maybe? idk, not yet. ❌

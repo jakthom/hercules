@@ -28,14 +28,14 @@ func ensureExtension(conn *sql.Conn, extensionName string, extensionType string)
 	if err != nil {
 		log.Fatal().Err(err).Interface("extension", extensionName).Msg("unable to load " + extensionType + " extension")
 	}
-	log.Info().Interface("extension", extensionName).Msg(extensionType + " extension ensured")
+	log.Debug().Interface("extension", extensionName).Msg(extensionType + " extension ensured")
 }
 
 type CoreExtension struct {
 	Name string
 }
 
-func (ce *CoreExtension) EnsureWithConnection(conn *sql.Conn) {
+func (ce *CoreExtension) ensureWithConnection(conn *sql.Conn) {
 	ensureExtension(conn, ce.Name, CORE_EXTENSION)
 }
 
@@ -43,11 +43,20 @@ type CommunityExtension struct {
 	Name string
 }
 
-func (e *CommunityExtension) EnsureWithConnection(conn *sql.Conn) {
+func (e *CommunityExtension) ensureWithConnection(conn *sql.Conn) {
 	ensureExtension(conn, e.Name, COMMUNITY_EXTENSION)
 }
 
 type Extensions struct {
 	Core      []CoreExtension
 	Community []CommunityExtension
+}
+
+func EnsureExtensionsWithConnection(extensions Extensions, conn *sql.Conn) {
+	for _, coreExtension := range extensions.Core {
+		coreExtension.ensureWithConnection(conn)
+	}
+	for _, communityExtension := range extensions.Community {
+		communityExtension.ensureWithConnection(conn)
+	}
 }

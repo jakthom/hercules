@@ -51,16 +51,16 @@ func (s *Source) createOrReplaceViewSql() db.Sql {
 func (s *Source) refreshWithConn(conn *sql.Conn) error {
 	if s.Materialize {
 		_, err := db.RunSqlQuery(conn, s.createOrReplaceTableSql())
-		log.Info().Interface("source", s.Name).Msg("source refreshed")
+		log.Debug().Interface("source", s.Name).Msg("source refreshed")
 		return err
 	} else {
 		_, err := db.RunSqlQuery(conn, s.createOrReplaceViewSql())
-		log.Info().Interface("source", s.Name).Msg("source refreshed")
+		log.Debug().Interface("source", s.Name).Msg("source refreshed")
 		return err
 	}
 }
 
-func (s *Source) InitializeWithConnection(conn *sql.Conn) error {
+func (s *Source) initializeWithConnection(conn *sql.Conn) error {
 	err := s.refreshWithConn(conn)
 	if err != nil {
 		log.Fatal().Err(err).Interface("source", s.Name).Msg("could not refresh source")
@@ -82,6 +82,17 @@ func (s *Source) InitializeWithConnection(conn *sql.Conn) error {
 				}
 			}
 		}()
+	}
+	return nil
+}
+
+func InitializeSourcesWithConnection(sources []Source, conn *sql.Conn) error {
+	for _, source := range sources {
+		err := source.initializeWithConnection(conn)
+		if err != nil {
+			log.Error().Err(err).Interface("source", source.Name).Msg("could not initialize source")
+			return err
+		}
 	}
 	return nil
 }

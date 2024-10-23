@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/dbecorp/hercules/pkg/db"
+	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
+
 	"github.com/dbecorp/hercules/pkg/labels"
 	"github.com/dbecorp/hercules/pkg/metrics"
 	"github.com/dbecorp/hercules/pkg/source"
@@ -28,15 +30,16 @@ const (
 )
 
 type Config struct {
-	Name         string                    `json:"name"`
-	Debug        bool                      `json:"debug"`
-	Port         string                    `json:"port"`
-	Db           string                    `json:"db"`
-	GlobalLabels labels.GlobalLabels       `json:"globalLabels"`
-	Extensions   db.Extensions             `json:"extensions"`
-	Macros       []db.Macro                `json:"macros"`
-	Sources      []source.Source           `json:"sources"`
-	Metrics      metrics.MetricDefinitions `json:"metrics"`
+	Name         string                          `json:"name"`
+	Debug        bool                            `json:"debug"`
+	Port         string                          `json:"port"`
+	Db           string                          `json:"db"`
+	GlobalLabels labels.GlobalLabels             `json:"globalLabels"`
+	Packages     []herculespackage.PackageConfig `json:"packages"`
+	Extensions   db.Extensions                   `json:"extensions"`
+	Macros       []db.Macro                      `json:"macros"`
+	Sources      []source.Source                 `json:"sources"`
+	Metrics      metrics.MetricDefinitions       `json:"metrics"`
 }
 
 func (c *Config) InstanceLabels() labels.GlobalLabels {

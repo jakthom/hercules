@@ -16,11 +16,18 @@ func (m *Macro) CreateOrReplaceSql() Sql {
 	return Sql(m.Sql)
 }
 
-func (m *Macro) EnsureWithConnection(conn *sql.Conn) {
+func (m *Macro) ensureWithConnection(conn *sql.Conn) {
 	_, err := RunSqlQuery(conn, m.CreateOrReplaceSql())
 	if err != nil {
 
 		log.Fatal().Err(err).Msg("could not ensure macro")
 	}
-	log.Info().Interface("macro", m.Sql).Msg("macro ensured")
+	log.Debug().Interface("macro", m.Sql).Msg("macro ensured")
+}
+
+// Ensure all macros. Blow up if macro cannot be ensured
+func EnsureMacrosWithConnection(macros []Macro, conn *sql.Conn) {
+	for _, macro := range macros {
+		macro.ensureWithConnection(conn)
+	}
 }
