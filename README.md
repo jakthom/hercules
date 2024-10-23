@@ -24,7 +24,7 @@ You'll need `go >=1.22` on your machine.
 ```
 git clone git@github.com:dbecorp/hercules.git && cd hercules
 
-make run
+ENV=$(whoami) make run
 ```
 
 ### Get Prometheus Metrics
