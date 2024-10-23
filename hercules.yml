@@ -8,6 +8,12 @@ globalLabels:
   - cell: ausw1
   - env: dev
 
+packages:
+  - name: snowflake
+    location: hercules-snowflake-pkg.yml
+    variables:
+      name: blah
+
 extensions:
   core:
     - name: inet
@@ -25,12 +31,6 @@ macros:
   - sql: create or replace macro two() AS (SELECT 2);
 
 sources:
-  - name: snowflake_query_history
-    type: parquet
-    source: assets/snowflake_query_history.parquet
-    materialize: true
-    refreshIntervalSeconds: 5
-
   - name: united_states_zip_codes
     type: csv
     source: https://raw.githubusercontent.com/scpike/us-state-county-zip/refs/heads/master/geo-data.csv
@@ -66,107 +66,8 @@ metrics:
       labels:
         - user
 
-    - name: query_status_count
-      help: Queries executed and their associated status, by user and warehouse
-      enabled: true
-      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name, status := lower(execution_status)) as labels, count(*) as value group by 1;
-      labels:
-        - user
-        - warehouse
-        - status
-
-    - name: queries_this_week_total
-      help: Queries this week total, by user and warehouse
-      enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, count(*) as value from snowflake_query_history group by 1;
-      labels:
-        - user
-        - warehouse
-
-    - name: avg_query_duration_seconds
-      help: The average query duration for a particular user, using a particular warehouse
-      enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by 1;
-      labels:
-        - user
-        - warehouse
-
-    - name: table_operations_count
-      help: The number of operations on each table over the last week
-      enabled: true
-      sql: select struct_pack(user := user_name, query_type := query_type) as labels, count(*) as value from snowflake_query_history group by 1;
-      labels:
-        - user
-        - query_type
-
-    - name: avg_virtual_warehouse_spill_to_local_storage_bytes
-      help: The average bytes spilled to disk for queries on a specific warehouse
-      enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_LOCAL_STORAGE) as value from snowflake_query_history group by 1;
-      labels:
-        - user
-        - warehouse
-
-    - name: avg_virtual_warehouse_spill_to_remote_storage_bytes
-      help: The average bytes spilled to remote disk for queries on a specific warehouse
-      enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_REMOTE_STORAGE) as value from snowflake_query_history group by 1;
-      labels:
-        - user
-        - warehouse
-
     - name: united_states_zip_codes_total
       help: The number of US zip codes
       sql: select struct_pack(state := state) as labels, count(*) as value from united_states_zip_codes group by 1;
       labels:
         - state
-
-  histogram:
-    - name: query_duration_seconds
-      help: Histogram of query duration seconds
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse
-      buckets:
-        - 0.1
-        - 0.5
-        - 1
-        - 2
-        - 4
-        - 8
-        - 16
-        - 32
-        - 64
-        - 128
-        - 256
-        - 512
-        - 1024
-        - 2048
-        - 4096
-        - 8192
-        - 16384
-        - 32768
-
-  summary:
-    - name: virtual_warehouse_query_duration_seconds
-      help: Summary of query duration seconds
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse
-      objectives:
-        - 0.001
-        - 0.05
-        - 0.01
-        - 0.5
-        - 0.9
-        - 0.99
-
-  counter:
-    - name: queries_executed_count
-      help: The count of queries executed by user and warehouse
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, 1 as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse

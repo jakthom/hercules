@@ -16,7 +16,7 @@
 
 ## Metrics
     - Handle scalar values well ✅
-    - Bail if a single metric cannot be materialized, so remaining metrics can be ❌
+    - Bail if a single metric cannot be materialized, so remaining metrics can be ✅
     - Genericize/interface metrics ❌
     - Metric definition packages
         - Support named path groupings ❌

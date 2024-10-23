@@ -24,13 +24,11 @@ func InitializeDB(conf config.Config) (*sql.DB, *sql.Conn) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not initialize duckdb connection")
 	}
-	ensureMacros(conf.Macros, conn)
-	ensureExtensions(conf.Extensions, conn)
 	defer db.Close()
 	return db, conn
 }
 
-func ensureMacros(macros []db.Macro, conn *sql.Conn) {
+func EnsureMacrosWithConnection(macros []db.Macro, conn *sql.Conn) {
 	// Ensure built-in macros are present
 	for _, macro := range herculesMacros() {
 		macro.EnsureWithConnection(conn)
@@ -41,7 +39,7 @@ func ensureMacros(macros []db.Macro, conn *sql.Conn) {
 	}
 }
 
-func ensureExtensions(extensions db.Extensions, conn *sql.Conn) {
+func EnsureExtensionsWithConnection(extensions db.Extensions, conn *sql.Conn) {
 	for _, coreExtension := range extensions.Core {
 		coreExtension.EnsureWithConnection(conn)
 	}

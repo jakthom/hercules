@@ -12,6 +12,7 @@ import (
 
 	"github.com/dbecorp/hercules/pkg/config"
 	"github.com/dbecorp/hercules/pkg/flock"
+	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
 	metrics "github.com/dbecorp/hercules/pkg/metrics"
 	"github.com/dbecorp/hercules/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,6 +27,7 @@ var VERSION string
 type Hercules struct {
 	config         config.Config
 	db             *sql.DB
+	packages       []herculespackage.Package
 	conn           *sql.Conn
 	metricRegistry *metrics.MetricRegistry
 }
@@ -48,6 +50,22 @@ func (d *Hercules) initializeFlock() {
 	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
+func (d *Hercules) initializePackages() {
+	pkgs := []herculespackage.Package{}
+	for _, pkgConfig := range d.config.Packages {
+		pkg, err := pkgConfig.GetPackage()
+		if err != nil {
+			log.Error().Err(err).Msg("could not get package")
+		}
+		pkgs = append(pkgs, pkg)
+	}
+	d.packages = pkgs
+}
+
+func (d *Hercules) initializeExtensions() {}
+
+func (d *Hercules) initializeMacros() {}
+
 func (d *Hercules) initializeSources() {
 	for _, source := range d.config.Sources {
 		source.InitializeWithConnection(d.conn)
@@ -62,6 +80,9 @@ func (d *Hercules) Initialize() {
 	log.Debug().Msg("initializing Hercules")
 	d.configure()
 	d.initializeFlock()
+	d.initializePackages()
+	d.initializeExtensions()
+	d.initializeMacros()
 	d.initializeSources()
 	d.initializeRegistry()
 	log.Debug().Interface("config", d.config).Msg("running with config")
