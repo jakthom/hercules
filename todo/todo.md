@@ -54,6 +54,7 @@
     - Codespaces ❌
 
 ## Package distribution stuff
+    - Turn dashes to underscores in package names so the metrics get properly registered ❌
     - Pull from public/s3-backed, nicely-named package registry ❌
     - CLI for authoring, linting, and publishing packages? Maybe? idk, not yet. ❌
 
