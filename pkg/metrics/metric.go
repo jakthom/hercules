@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/dbecorp/hercules/pkg/db"
-	"github.com/dbecorp/hercules/pkg/labels"
+	herculestypes "github.com/dbecorp/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -65,66 +65,6 @@ func (m *MetricDefinitions) Merge(metricDefinitions MetricDefinitions) {
 	m.Histogram = append(m.Histogram, metricDefinitions.Histogram...)
 }
 
-type MetricRegistry struct {
-	Gauge     map[string]GaugeMetric
-	Counter   map[string]CounterMetric
-	Summary   map[string]SummaryMetric
-	Histogram map[string]HistogramMetric
-}
-
-func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
-	for _, gauge := range mr.Gauge {
-		err := gauge.materializeWithConnection(conn)
-		if err != nil {
-			log.Error().Err(err)
-		}
-	}
-
-	for _, histogram := range mr.Histogram {
-		err := histogram.materializeWithConnection(conn)
-		if err != nil {
-			log.Error().Err(err)
-		}
-	}
-
-	for _, summary := range mr.Summary {
-		err := summary.materializeWithConnection(conn)
-		if err != nil {
-			log.Error().Err(err)
-		}
-	}
-
-	for _, counter := range mr.Counter {
-		err := counter.materializeWithConnection(conn)
-		if err != nil {
-			log.Error().Err(err)
-		}
-	}
-	return nil
-}
-
-func NewMetricRegistry(definitions MetricDefinitions, labels labels.GlobalLabels) *MetricRegistry {
-	r := MetricRegistry{}
-	r.Gauge = make(map[string]GaugeMetric)
-	r.Histogram = make(map[string]HistogramMetric)
-	r.Summary = make(map[string]SummaryMetric)
-	r.Counter = make(map[string]CounterMetric)
-
-	for _, definition := range definitions.Gauge {
-		g := NewGaugeMetric(definition, labels)
-		r.Gauge[g.Definition.Name] = g
-	}
-	for _, definition := range definitions.Histogram {
-		h := NewHistogramMetric(definition, labels)
-		r.Histogram[h.Definition.Name] = h
-	}
-	for _, definition := range definitions.Summary {
-		s := NewSummaryMetric(definition, labels)
-		r.Summary[s.Definition.Name] = s
-	}
-	for _, definition := range definitions.Counter {
-		c := NewCounterMetric(definition, labels)
-		r.Counter[c.Definition.Name] = c
-	}
-	return &r
+type MetricMetadata struct {
+	PackageName herculestypes.PackageName
 }

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/dbecorp/hercules/pkg/labels"
+	herculestypes "github.com/dbecorp/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -41,7 +42,7 @@ func (m *CounterMetric) reregister() error {
 	return m.register()
 }
 
-func (m *CounterMetric) materializeWithConnection(conn *sql.Conn) error {
+func (m *CounterMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	m.reregister()
 	results, err := m.Definition.materializeWithConnection(conn)
 	if err != nil {
@@ -55,10 +56,12 @@ func (m *CounterMetric) materializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewCounterMetric(definition CounterMetricDefinition, labels labels.GlobalLabels) CounterMetric {
+func NewCounterMetric(definition CounterMetricDefinition, meta herculestypes.MetricMetadata) CounterMetric {
+	// TODO! Turn this into a generic function instead of copy/pasta
+	definition.Name = string(meta.MetricPrefix) + string(meta.PackageName) + "_" + definition.Name
 	metric := CounterMetric{
 		Definition:   definition,
-		GlobalLabels: labels,
+		GlobalLabels: meta.Labels,
 	}
 	metric.register()
 	return metric
