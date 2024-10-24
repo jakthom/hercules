@@ -138,5 +138,7 @@ func (d *Hercules) Run() {
 		}
 	}
 	d.db.Close()
-	os.Remove(d.config.Db)
+	if !d.debug {
+		os.Remove(d.config.Db)
+	}
 }

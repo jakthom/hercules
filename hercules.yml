@@ -2,6 +2,7 @@ version: 1
 
 name: edge
 debug: false
+db: h.db
 port: 9100
 
 globalLabels:
