@@ -205,7 +205,10 @@ Starter packages can be found in the [hercules-packages](/hercules-packages/) di
 
 ```
 packages:
-  - location: hercules-packages/snowflake-performance.yml
+  - package: hercules-packages/snowflake/1.0.yml
+    variables:
+      yo: yee
+    metricPrefix: skt_
 ```
 
 
