@@ -77,7 +77,7 @@ Hercules supports the following metric types:
 - Histogram metrics ✅
 
 
-**Example Gauge Metric Definition**
+**Example Gauge Metric Definition:**
 
 ```
 metrics:
@@ -90,7 +90,7 @@ metrics:
 ```
 
 
-**Example Histogram Metric Definition**
+**Example Histogram Metric Definition:**
 ```
 metrics:
   histogram:
@@ -111,7 +111,7 @@ metrics:
 ```
 
 
-**Example Summary Metric Definition**
+**Example Summary Metric Definition:**
 ```
   summary:
     - name: virtual_warehouse_query_duration_seconds
@@ -130,7 +130,7 @@ metrics:
 ```
 
 
-**Example Counter Metric Definition**
+**Example Counter Metric Definition:**
 ```
   counter:
     - name: queries_executed_count
@@ -148,7 +148,7 @@ Hercules **sources** and **metrics** can be *externally enriched*, leading to mo
 
 Don't run expensive, time-consuming relabel and join operations on your centralized Prometheus data store. Integrate, calculate, enrich, and label on the edge.
 
-**Example Enriched Source**
+**Example Enriched Source:**
 
 ```
 sources:
@@ -173,7 +173,7 @@ Macros are automatically ensured on startup and are useful for common activities
 - Tokenizing attributes
 
 
-**Example Macro Definition**
+**Example Macro Definition:**
 
 ```
 macros:
@@ -187,7 +187,7 @@ Hercules allows global labels to be propagated to all configured metrics. So you
 
 Labels can also be propagated directly from environment variables.
 
-**Example label definition**
+**Example label definition:**
 ```
 globalLabels:
   - cell: ausw1
@@ -201,7 +201,7 @@ Hercules includes a yml-based package loader which means extensions, macros, sou
 
 Starter packages can be found in the [hercules-packages](/hercules-packages/) directory.
 
-**Example package registration**
+**Example package registration:**
 
 ```
 packages:
