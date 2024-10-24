@@ -146,7 +146,7 @@ metrics:
 
 Hercules **sources** and **metrics** can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), ***properly-labeled*** metrics.
 
-Don't run expensive, time-consuming relabel and join operations on your centralized Prometheus data store. Integrate, calculate, enrich, and label on the edge.
+Integrate, calculate, enrich, and label on the edge.
 
 **Example Enriched Source:**
 
@@ -162,7 +162,7 @@ sources:
 
 ### Macros
 
-Keep metric definitions DRY using Hercules macros.
+Metric definitions can be kept DRY using Hercules macros.
 
 Macros are automatically ensured on startup and are useful for common activities such as:
 
@@ -222,8 +222,8 @@ A byproduct of Hercules being ridiculously efficient is the capability to **mate
 - Calculate prometheus-compatible metrics from geospatial data
 - Coerce unwieldy files to useful statistics using full-text search
 - Enhance metric labeling using vector similarity search
-- [Don't start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/) if you don't want to
 - Use modern [pipe sql syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/) or [prql](https://prql-lang.org/) for defining and transforming your metrics
+- [Don't start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/) if you don't want to (thanks Jevans!)
 
 
 # Further Resources
