@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/dbecorp/hercules/pkg/labels"
+	herculestypes "github.com/dbecorp/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -43,7 +44,7 @@ func (m *HistogramMetric) reregister() error {
 	return m.register()
 }
 
-func (m *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
+func (m *HistogramMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	m.reregister()
 	results, err := m.Definition.materializeWithConnection(conn)
 	if err != nil {
@@ -57,10 +58,12 @@ func (m *HistogramMetric) materializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewHistogramMetric(definition HistogramMetricDefinition, labels labels.GlobalLabels) HistogramMetric {
+func NewHistogramMetric(definition HistogramMetricDefinition, meta herculestypes.MetricMetadata) HistogramMetric {
+	// TODO! Turn this into a generic function instead of copy/pasta
+	definition.Name = string(meta.MetricPrefix) + string(meta.PackageName) + "_" + definition.Name
 	metric := HistogramMetric{
 		Definition:   definition,
-		GlobalLabels: labels,
+		GlobalLabels: meta.Labels,
 	}
 	metric.register()
 	return metric

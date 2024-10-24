@@ -4,14 +4,14 @@
 <img src="assets/heracles.png" width="250" align="right"/>
 
 
-Hercules is a DuckDB-powered Prometheus exporter that supercharges metrics.
+### Hercules is a Prometheus-compatible exporter that supercharges your metrics.
 
 
-**Generate prometheus-compatible metrics** from parquet, csv files, json logs, data lakes, databases, http endpoints, and much more.
+* **Generate prometheus-compatible metrics** from parquet, csv files, json logs, data lakes, databases, http endpoints, and much more.
 
-**Generate enriched, labeled** metrics properly from the source; don't relabel using your favorite metrics database.
+* **Generate enriched, labeled** metrics properly from the source; don't relabel using your favorite metrics database.
 
-**Embrace** the pantheon of metrics harvesting using Prometheus-compatible scrape targets that easily tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
+* **Embrace** the pantheon of metrics harvesting using Prometheus-compatible scrape targets that easily tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
 
 
 # Getting Started

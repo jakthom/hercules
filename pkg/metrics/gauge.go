@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/dbecorp/hercules/pkg/labels"
+	herculestypes "github.com/dbecorp/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -42,7 +43,7 @@ func (m *GaugeMetric) reregister() error {
 	return m.register()
 }
 
-func (m *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
+func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	m.reregister()
 	results, err := m.Definition.materializeWithConnection(conn)
 	if err != nil {
@@ -56,10 +57,12 @@ func (m *GaugeMetric) materializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewGaugeMetric(definition GaugeMetricDefinition, labels labels.GlobalLabels) GaugeMetric {
+func NewGaugeMetric(definition GaugeMetricDefinition, meta herculestypes.MetricMetadata) GaugeMetric {
+	// TODO! Turn this into a generic function instead of copy/pasta
+	definition.Name = string(meta.MetricPrefix) + string(meta.PackageName) + "_" + definition.Name
 	metric := GaugeMetric{
 		Definition:   definition,
-		GlobalLabels: labels,
+		GlobalLabels: meta.Labels,
 	}
 	metric.register()
 	return metric

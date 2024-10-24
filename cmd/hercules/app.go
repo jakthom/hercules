@@ -13,8 +13,9 @@ import (
 	"github.com/dbecorp/hercules/pkg/config"
 	"github.com/dbecorp/hercules/pkg/flock"
 	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
-	metrics "github.com/dbecorp/hercules/pkg/metrics"
+	registry "github.com/dbecorp/hercules/pkg/metricRegistry"
 	"github.com/dbecorp/hercules/pkg/middleware"
+	herculestypes "github.com/dbecorp/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -25,12 +26,12 @@ import (
 var VERSION string
 
 type Hercules struct {
-	config         config.Config
-	db             *sql.DB
-	packages       []herculespackage.Package
-	conn           *sql.Conn
-	metricRegistry *metrics.MetricRegistry
-	debug          bool
+	config           config.Config
+	db               *sql.DB
+	packages         []herculespackage.Package
+	conn             *sql.Conn
+	metricRegistries []*registry.MetricRegistry
+	debug            bool
 }
 
 func (d *Hercules) configure() {
@@ -80,13 +81,20 @@ func (d *Hercules) initializePackages() {
 	}
 }
 
-func (d *Hercules) initializeRegistry() {
-	// Merge metric definitions from all packages
-	metricDefinitions := metrics.MetricDefinitions{}
+func (d *Hercules) initializeRegistries() {
+	// Register a registry for each package
 	for _, pkg := range d.packages {
-		metricDefinitions.Merge(pkg.Metrics)
+		metricMetadata := herculestypes.MetricMetadata{
+			PackageName:  pkg.Name,
+			MetricPrefix: pkg.MetricPrefix,
+			Labels:       d.config.InstanceLabels(),
+		}
+		if d.metricRegistries == nil {
+			d.metricRegistries = []*registry.MetricRegistry{registry.NewMetricRegistry(pkg.Metrics, metricMetadata)}
+		} else {
+			d.metricRegistries = append(d.metricRegistries, registry.NewMetricRegistry(pkg.Metrics, metricMetadata))
+		}
 	}
-	d.metricRegistry = metrics.NewMetricRegistry(metricDefinitions, d.config.InstanceLabels())
 }
 
 func (d *Hercules) Initialize() {
@@ -95,14 +103,14 @@ func (d *Hercules) Initialize() {
 	d.initializeFlock()
 	d.loadPackages()
 	d.initializePackages()
-	d.initializeRegistry()
+	d.initializeRegistries()
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 
 func (d *Hercules) Run() {
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove golang node defaults
-	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistry, promhttp.Handler()))
+	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistries, promhttp.Handler()))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,

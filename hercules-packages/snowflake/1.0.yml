@@ -12,7 +12,7 @@
 #   - SNOWFLAKE.ACCOUNT_USAGE.DATA_TRANSFER_HISTORY
 #   - SNOWFLAKE.ACCOUNT_USAGE.DOCUMENT_AI_USAGE_HISTORY
 
-name: snowflake-performance
+name: snowflake
 version: 1.0
 
 macros:

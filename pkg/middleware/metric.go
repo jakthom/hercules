@@ -4,12 +4,14 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/dbecorp/hercules/pkg/metrics"
+	registry "github.com/dbecorp/hercules/pkg/metricRegistry"
 )
 
-func MetricsMiddleware(conn *sql.Conn, registry *metrics.MetricRegistry, next http.Handler) http.Handler {
+func MetricsMiddleware(conn *sql.Conn, registries []*registry.MetricRegistry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		registry.MaterializeWithConnection(conn)
+		for _, registry := range registries {
+			registry.MaterializeWithConnection(conn)
+		}
 		next.ServeHTTP(w, r)
 	})
 }

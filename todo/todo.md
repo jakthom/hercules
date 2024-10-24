@@ -6,7 +6,7 @@
 
 ## Database stuff
     - Support ATTACH-ing s3/gcs-based databases ❌
-    - Support duckdb secrets registration ❌
+    - Support duckdb-based secrets registration ❌
     - Namespace all packages using a database so they don't collide ❌
 
 ## Sources
@@ -15,9 +15,15 @@
     - Refresh on http-post (POST collector:9100/sources/$BLAH/refresh) ❌
     - Support view-based sources ✅
 
+## Registries
+    - Make a registry for each package so they can be reloaded independently @ some point ✅
+    - Reload registries via http ❌
+
 ## Metrics
     - Handle scalar values well ✅
     - Continue materializing metrics if a single metric cannot be materialized instead of blowing up ✅
+    - Prefix metric names with the package name ✅
+    - Support custom prefixes via configuration ✅
     - Genericize/interface metrics ❌
     - Metric definition packages
         - Support named path groupings ❌
@@ -52,5 +58,4 @@
     - CLI for authoring, linting, and publishing packages? Maybe? idk, not yet. ❌
 
 ## Outstanding questions
-    - Should package names be prometheus metric name prefixes?
-    - 
+    -
