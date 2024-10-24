@@ -77,7 +77,10 @@ func (d *Hercules) loadPackages() {
 
 func (d *Hercules) initializePackages() {
 	for _, p := range d.packages {
-		p.InitializeWithConnection(d.conn)
+		err := p.InitializeWithConnection(d.conn)
+		if err != nil {
+			log.Error().Err(err).Interface("package", p.Name).Msg("could not initialize package " + string(p.Name))
+		}
 	}
 }
 
