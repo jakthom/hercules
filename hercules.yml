@@ -10,4 +10,5 @@ globalLabels:
 
 packages:
   - package: hercules-packages/snowflake/performance/1.0.yml
-  - package: hercules-packages/example/nyc-taxi/1.0.yml
+  # - package: hercules-packages/example/nyc-taxi/1.0.yml
+  # - package: hercules-packages/example/tpch/1.0.yml
