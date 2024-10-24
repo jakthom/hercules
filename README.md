@@ -1,6 +1,8 @@
 # Hercules
 
-![heracles](assets/heracles.png)
+
+<img src="assets/heracles.png" width="250" align="right"/>
+
 
 Hercules is a DuckDB-powered Prometheus exporter that supercharges metrics.
 
