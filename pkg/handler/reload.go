@@ -8,6 +8,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const HTTP_PACKAGE_RELOAD_ROUTE string = "/packages/{pkg}/reload"
+
 func PackageReloadHandler(config config.Config, metricRegistries *map[string]*registry.MetricRegistry) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		packageName := r.PathValue("pkg")
