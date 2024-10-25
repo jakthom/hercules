@@ -7,7 +7,7 @@ import (
 	registry "github.com/dbecorp/hercules/pkg/metricRegistry"
 )
 
-func MetricsMiddleware(conn *sql.Conn, registries []*registry.MetricRegistry, next http.Handler) http.Handler {
+func MetricsMiddleware(conn *sql.Conn, registries map[string]*registry.MetricRegistry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, registry := range registries {
 			registry.MaterializeWithConnection(conn)

@@ -10,8 +10,12 @@ sources:
 
 metrics:
   gauge:
-    - name: united_states_zip_codes_total
+    - name: united_states_zip_codes_by_state_total
       help: The number of US zip codes
       sql: select struct_pack(state := state) as labels, count(*) as value from united_states_zip_codes group by 1;
       labels:
         - state
+
+    - name: united_states_zip_codes_total
+      help: The number of US zip codes
+      sql: select count(*) as value from united_states_zip_codes;

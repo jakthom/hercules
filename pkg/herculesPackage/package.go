@@ -18,6 +18,7 @@ type HerculesPackageVariables map[string]interface{}
 
 type Package struct {
 	Name         herculestypes.PackageName  `json:"name"`
+	Config       PackageConfig              `json:"packageConfig"`
 	Version      string                     `json:"version"`
 	Variables    HerculesPackageVariables   `json:"variables"`
 	MetricPrefix herculestypes.MetricPrefix `json:"metricPrefix"`
@@ -54,6 +55,7 @@ func (p *PackageConfig) GetPackage() (Package, error) {
 	pkg := &Package{}
 	pkg.Variables = p.Variables
 	pkg.MetricPrefix = p.MetricPrefix
+	pkg.Config = *p
 	// Try to get configuration from file
 	viper.SetConfigFile(p.Package)
 	viper.SetConfigType("yaml")

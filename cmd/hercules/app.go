@@ -12,10 +12,10 @@ import (
 
 	"github.com/dbecorp/hercules/pkg/config"
 	"github.com/dbecorp/hercules/pkg/flock"
+	"github.com/dbecorp/hercules/pkg/handler"
 	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
 	registry "github.com/dbecorp/hercules/pkg/metricRegistry"
 	"github.com/dbecorp/hercules/pkg/middleware"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -30,7 +30,7 @@ type Hercules struct {
 	db               *sql.DB
 	packages         []herculespackage.Package
 	conn             *sql.Conn
-	metricRegistries []*registry.MetricRegistry
+	metricRegistries map[string]*registry.MetricRegistry
 	debug            bool
 }
 
@@ -86,18 +86,12 @@ func (d *Hercules) initializePackages() {
 
 func (d *Hercules) initializeRegistries() {
 	// Register a registry for each package
+	var registries = make(map[string]*registry.MetricRegistry)
 	for _, pkg := range d.packages {
-		metricMetadata := herculestypes.MetricMetadata{
-			PackageName:  pkg.Name,
-			MetricPrefix: pkg.MetricPrefix,
-			Labels:       d.config.InstanceLabels(),
-		}
-		if d.metricRegistries == nil {
-			d.metricRegistries = []*registry.MetricRegistry{registry.NewMetricRegistry(pkg.Metrics, metricMetadata)}
-		} else {
-			d.metricRegistries = append(d.metricRegistries, registry.NewMetricRegistry(pkg.Metrics, metricMetadata))
-		}
+		registry := registry.NewMetricRegistryfromPackage(pkg, d.config.InstanceLabels())
+		registries[string(pkg.Name)] = registry
 	}
+	d.metricRegistries = registries
 }
 
 func (d *Hercules) Initialize() {
@@ -107,6 +101,7 @@ func (d *Hercules) Initialize() {
 	d.loadPackages()
 	d.initializePackages()
 	d.initializeRegistries()
+
 	log.Debug().Interface("config", d.config).Msg("running with config")
 }
 
@@ -114,6 +109,7 @@ func (d *Hercules) Run() {
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove golang node defaults
 	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistries, promhttp.Handler()))
+	mux.Handle("/packages/{pkg}", handler.PackageReloadHandler(d.config, &d.metricRegistries))
 	mux.Handle("/", http.RedirectHandler("/metrics", http.StatusSeeOther))
 
 	srv := &http.Server{
