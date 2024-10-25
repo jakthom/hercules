@@ -21,7 +21,7 @@ func PackageReloadHandler(config config.Config, metricRegistries *map[string]*re
 			return
 		}
 		// Otherwise proceed to create and registry a new package with the application registry
-		// NOTE!!! The refresh goroutines should all be shut down before registering a new registry.
+		// NOTE!!! The source refresh goroutines NEED all be shut down before registering a new registry. Otherwise they will be duplicated and become out of sync.
 		updatedPackage, err := metricRegistry.Package.Config.GetPackage()
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
