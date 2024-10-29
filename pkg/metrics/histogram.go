@@ -3,8 +3,8 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/hercules/pkg/labels"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/labels"
+	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )

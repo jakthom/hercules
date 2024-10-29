@@ -29,7 +29,7 @@ You'll need `go >=1.22` on your machine.
 ### Clone and Run Hercules Locally
 
 ```
-git clone git@github.com:dbecorp/hercules.git && cd hercules
+git clone git@github.com:jakthom/hercules.git && cd hercules
 
 make run
 ```

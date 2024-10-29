@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	testutil "github.com/dbecorp/hercules/pkg/testUtil"
+	testutil "github.com/jakthom/hercules/pkg/testUtil"
 )
 
 func TestEnsureExtension(t *testing.T) {

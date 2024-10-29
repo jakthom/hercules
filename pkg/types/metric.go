@@ -1,6 +1,6 @@
 package herculestypes
 
-import "github.com/dbecorp/hercules/pkg/labels"
+import "github.com/jakthom/hercules/pkg/labels"
 
 type MetricPrefix string
 

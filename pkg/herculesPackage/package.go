@@ -3,10 +3,10 @@ package herculespackage
 import (
 	"database/sql"
 
-	"github.com/dbecorp/hercules/pkg/db"
-	"github.com/dbecorp/hercules/pkg/metrics"
-	"github.com/dbecorp/hercules/pkg/source"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/db"
+	"github.com/jakthom/hercules/pkg/metrics"
+	"github.com/jakthom/hercules/pkg/source"
+	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )

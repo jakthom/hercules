@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
-	"github.com/dbecorp/hercules/pkg/labels"
+	herculespackage "github.com/jakthom/hercules/pkg/herculesPackage"
+	"github.com/jakthom/hercules/pkg/labels"
 	"github.com/stretchr/testify/assert"
 )
 

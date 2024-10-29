@@ -1,4 +1,4 @@
-module github.com/dbecorp/hercules
+module github.com/jakthom/hercules
 
 go 1.22.1
 

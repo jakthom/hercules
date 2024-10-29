@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	registry "github.com/dbecorp/hercules/pkg/metricRegistry"
+	registry "github.com/jakthom/hercules/pkg/metricRegistry"
 	"github.com/rs/zerolog/log"
 )
 

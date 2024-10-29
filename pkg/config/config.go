@@ -3,12 +3,12 @@ package config
 import (
 	"os"
 
-	"github.com/dbecorp/hercules/pkg/db"
-	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
+	"github.com/jakthom/hercules/pkg/db"
+	herculespackage "github.com/jakthom/hercules/pkg/herculesPackage"
 
-	"github.com/dbecorp/hercules/pkg/labels"
-	"github.com/dbecorp/hercules/pkg/metrics"
-	"github.com/dbecorp/hercules/pkg/source"
+	"github.com/jakthom/hercules/pkg/labels"
+	"github.com/jakthom/hercules/pkg/metrics"
+	"github.com/jakthom/hercules/pkg/source"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )

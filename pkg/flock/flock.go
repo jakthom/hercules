@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 
-	"github.com/dbecorp/hercules/pkg/config"
+	"github.com/jakthom/hercules/pkg/config"
 	"github.com/marcboeker/go-duckdb"
 	"github.com/rs/zerolog/log"
 )

@@ -3,7 +3,7 @@ package herculestypes
 import (
 	"testing"
 
-	"github.com/dbecorp/hercules/pkg/labels"
+	"github.com/jakthom/hercules/pkg/labels"
 	"github.com/stretchr/testify/assert"
 )
 

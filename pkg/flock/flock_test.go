@@ -3,7 +3,7 @@ package flock
 import (
 	"testing"
 
-	"github.com/dbecorp/hercules/pkg/config"
+	"github.com/jakthom/hercules/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
