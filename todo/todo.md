@@ -1,6 +1,9 @@
 
 # To-Do, Features
 
+## Tests dude
+    - Write them ❌
+
 ## Code stuff
     - Interface/genericize metrics ❌
 
@@ -43,9 +46,6 @@
     - jsonschema-based config (validation, auto-complete) ❌
     - config validation (run through a local duckdb) ❌
 
-## Tests dude
-    - Write them ❌
-
 ## Distribution stuff
     - Build docker and publish to ghcr.io ❌
     - Build binaries and publish to package registry ❌
@@ -59,4 +59,4 @@
     - CLI for authoring, linting, and publishing packages? Maybe? idk, not yet. ❌
 
 ## Outstanding questions
-    -
+    - 

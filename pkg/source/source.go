@@ -76,8 +76,11 @@ func (s *Source) initializeWithConnection(conn *sql.Conn) error {
 				case <-done:
 					return
 				case <-ticker.C:
-					go func(conn *sql.Conn, source *Source) error {
-						return source.refreshWithConn(conn)
+					go func(conn *sql.Conn, source *Source) {
+						err := source.refreshWithConn(conn)
+						if err != nil {
+							log.Debug().Interface("source", source.Name).Msg("could not refresh source")
+						}
 					}(conn, s)
 				}
 			}

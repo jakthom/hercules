@@ -2,3 +2,4 @@
 *.wal
 .tmp/*
 scratch/*
+.vscode/*
