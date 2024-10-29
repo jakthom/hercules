@@ -2,6 +2,7 @@
 VERSION:=$(shell cat .VERSION)
 ENV:=$(shell whoami)
 HERCULES_DIR="./cmd/hercules/"
+TEST_PROFILE=testprofile.out
 
 build: ## Build hercules locally
 	CGO_ENABLED=1 go build -ldflags="-X main.VERSION=$(VERSION)" -o hercules $(HERCULES_DIR)
@@ -17,6 +18,10 @@ lint: ## Lint go code
 
 test: ## Run tests against pkg
 	@go test ./pkg/... ./cmd/...
+
+test-cover-pkg: ## Run tests against pkg, output test profile, and open profile in browser
+	go test ./pkg/... -v -coverprofile=$(TEST_PROFILE) || true
+	go tool cover -html=$(TEST_PROFILE) || true
 
 help: ## Display makefile help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

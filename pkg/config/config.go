@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"strconv"
 
 	"github.com/dbecorp/hercules/pkg/db"
 	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
@@ -77,17 +76,6 @@ func GetConfig() (Config, error) {
 	}
 	if err := viper.Unmarshal(config); err != nil {
 		log.Error().Stack().Err(err)
-	}
-
-	// Env-based overrides
-	debugFromEnv := os.Getenv(DEBUG)
-	if debugFromEnv != "" {
-		debug, err := strconv.ParseBool(os.Getenv(DEBUG))
-		if err != nil {
-			log.Error().Msg("could set debug from env")
-		} else {
-			config.Debug = debug
-		}
 	}
 
 	return *config, nil

@@ -16,7 +16,7 @@ name: snowflake
 version: 1.0
 
 macros:
-  - sql: create or replace macro one() AS (SELECT 1);
+  - sql: one() AS (SELECT 1);
 
 sources:
   - name: snowflake_query_history
