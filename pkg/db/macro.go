@@ -13,7 +13,7 @@ type Macro struct {
 
 func (m *Macro) CreateOrReplaceSql() Sql {
 	// TODO -> be more flexible with how these are handled - allow "create", "create or replace", nameless macros, etc.
-	return Sql(m.Sql)
+	return Sql("create or replace macro " + m.Sql)
 }
 
 func (m *Macro) ensureWithConnection(conn *sql.Conn) {

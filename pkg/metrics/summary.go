@@ -3,8 +3,8 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/hercules/pkg/labels"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/labels"
+	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -16,7 +16,7 @@ type SummaryMetricDefinition struct {
 
 type SummaryMetric struct {
 	Definition   SummaryMetricDefinition
-	GlobalLabels labels.GlobalLabels
+	GlobalLabels labels.Labels
 	Collector    *prometheus.SummaryVec
 }
 
@@ -60,7 +60,7 @@ func (m *SummaryMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	}
 	for _, r := range results {
 		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
-		m.Collector.With(l).Observe(r.Value)
+		m.Collector.With(map[string]string(l)).Observe(r.Value)
 	}
 	return nil
 }

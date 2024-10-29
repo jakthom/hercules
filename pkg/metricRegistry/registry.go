@@ -3,8 +3,8 @@ package registry
 import (
 	"database/sql"
 
-	"github.com/dbecorp/hercules/pkg/metrics"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/metrics"
+	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 

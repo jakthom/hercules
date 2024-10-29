@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dbecorp/hercules/pkg/db"
+	"github.com/jakthom/hercules/pkg/db"
 	"github.com/rs/zerolog/log"
 )
 

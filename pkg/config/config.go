@@ -2,14 +2,13 @@ package config
 
 import (
 	"os"
-	"strconv"
 
-	"github.com/dbecorp/hercules/pkg/db"
-	herculespackage "github.com/dbecorp/hercules/pkg/herculesPackage"
+	"github.com/jakthom/hercules/pkg/db"
+	herculespackage "github.com/jakthom/hercules/pkg/herculesPackage"
 
-	"github.com/dbecorp/hercules/pkg/labels"
-	"github.com/dbecorp/hercules/pkg/metrics"
-	"github.com/dbecorp/hercules/pkg/source"
+	"github.com/jakthom/hercules/pkg/labels"
+	"github.com/jakthom/hercules/pkg/metrics"
+	"github.com/jakthom/hercules/pkg/source"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -34,7 +33,7 @@ type Config struct {
 	Debug        bool                            `json:"debug"`
 	Port         string                          `json:"port"`
 	Db           string                          `json:"db"`
-	GlobalLabels labels.GlobalLabels             `json:"globalLabels"`
+	GlobalLabels labels.Labels                   `json:"globalLabels"`
 	Packages     []herculespackage.PackageConfig `json:"packages"`
 	Extensions   db.Extensions                   `json:"extensions"`
 	Macros       []db.Macro                      `json:"macros"`
@@ -42,8 +41,8 @@ type Config struct {
 	Metrics      metrics.MetricDefinitions       `json:"metrics"`
 }
 
-func (c *Config) InstanceLabels() labels.GlobalLabels {
-	globalLabels := labels.GlobalLabels{}
+func (c *Config) InstanceLabels() labels.Labels {
+	globalLabels := labels.Labels{}
 	globalLabels[HERCULES_NAME_LABEL] = c.Name
 	for k, v := range c.GlobalLabels {
 		globalLabels[k] = labels.InjectLabelFromEnv(v)
@@ -51,9 +50,8 @@ func (c *Config) InstanceLabels() labels.GlobalLabels {
 	return globalLabels
 }
 
-func (c *Config) Validate() error {
+func (c *Config) Validate() {
 	// Passthrough for now - stubbed for config validation
-	return nil
 }
 
 // Get configuration. If the specified file cannot be read fall back to sane defaults.
@@ -77,17 +75,6 @@ func GetConfig() (Config, error) {
 	}
 	if err := viper.Unmarshal(config); err != nil {
 		log.Error().Stack().Err(err)
-	}
-
-	// Env-based overrides
-	debugFromEnv := os.Getenv(DEBUG)
-	if debugFromEnv != "" {
-		debug, err := strconv.ParseBool(os.Getenv(DEBUG))
-		if err != nil {
-			log.Error().Msg("could set debug from env")
-		} else {
-			config.Debug = debug
-		}
 	}
 
 	return *config, nil

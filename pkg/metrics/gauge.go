@@ -3,8 +3,8 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/hercules/pkg/labels"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/labels"
+	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -15,7 +15,7 @@ type GaugeMetricDefinition struct {
 
 type GaugeMetric struct {
 	Definition   GaugeMetricDefinition
-	GlobalLabels labels.GlobalLabels
+	GlobalLabels labels.Labels
 	Collector    *prometheus.GaugeVec
 }
 
@@ -55,7 +55,7 @@ func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	}
 	for _, r := range results {
 		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
-		m.Collector.With(l).Set(r.Value)
+		m.Collector.With(map[string]string(l)).Set(r.Value)
 	}
 	return nil
 }

@@ -1,5 +1,10 @@
 # Hercules
 
+[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![test](https://github.com/jakthom/hercules/actions/workflows/test.yml/badge.svg)](https://github.com/jakthom/hercules/actions/workflows/test.yml)
+[![lint](https://github.com/jakthom/hercules/actions/workflows/lint.yml/badge.svg)](https://github.com/jakthom/hercules/actions/workflows/lint.yml)
+
+
 
 <img src="assets/heracles.png" width="250" align="right"/>
 
@@ -24,7 +29,7 @@ You'll need `go >=1.22` on your machine.
 ### Clone and Run Hercules Locally
 
 ```
-git clone git@github.com:dbecorp/hercules.git && cd hercules
+git clone git@github.com:jakthom/hercules.git && cd hercules
 
 make run
 ```

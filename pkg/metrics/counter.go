@@ -3,8 +3,8 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/hercules/pkg/labels"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/labels"
+	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -15,7 +15,7 @@ type CounterMetricDefinition struct {
 
 type CounterMetric struct {
 	Definition   CounterMetricDefinition
-	GlobalLabels labels.GlobalLabels
+	GlobalLabels labels.Labels
 	Collector    *prometheus.CounterVec
 }
 
@@ -54,7 +54,7 @@ func (m *CounterMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	}
 	for _, r := range results {
 		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
-		m.Collector.With(l).Inc()
+		m.Collector.With(map[string]string(l)).Inc()
 	}
 	return nil
 }

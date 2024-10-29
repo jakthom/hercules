@@ -3,8 +3,8 @@ package metrics
 import (
 	"database/sql"
 
-	"github.com/dbecorp/hercules/pkg/db"
-	herculestypes "github.com/dbecorp/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/db"
+	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
