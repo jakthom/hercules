@@ -108,9 +108,10 @@ func (d *Hercules) Initialize() {
 func (d *Hercules) Run() {
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove golang node defaults
+	mux.Handle("/", http.RedirectHandler("/metrics", http.StatusSeeOther))
 	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistries, promhttp.Handler()))
 	mux.Handle(handler.HTTP_PACKAGE_RELOAD_ROUTE, handler.PackageReloadHandler(d.config, &d.metricRegistries))
-	mux.Handle("/", http.RedirectHandler("/metrics", http.StatusSeeOther))
+	mux.Handle(handler.HTTP_PACKAGE_DIRECTORY_ROUTE, handler.PackageDirectoryHandler(&d.metricRegistries))
 
 	srv := &http.Server{
 		Addr:    ":" + d.config.Port,

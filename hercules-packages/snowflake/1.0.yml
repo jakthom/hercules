@@ -23,7 +23,7 @@ sources:
     type: parquet
     source: assets/snowflake_query_history.parquet
     materialize: true
-    refreshIntervalSeconds: 5
+    refreshIntervalSeconds: 60
 
 metrics:
   gauge:
