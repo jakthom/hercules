@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-type GlobalLabels map[string]string
+type Labels map[string]string
 
 func InjectLabelFromEnv(labelVal string) string {
 	if string(labelVal[0]) == "$" {
@@ -14,7 +14,7 @@ func InjectLabelFromEnv(labelVal string) string {
 	return labelVal
 }
 
-func (l GlobalLabels) LabelNames() []string {
+func (l Labels) LabelNames() []string {
 	var labelNames []string
 	for k := range l {
 		labelNames = append(labelNames, k)
@@ -22,7 +22,7 @@ func (l GlobalLabels) LabelNames() []string {
 	return labelNames
 }
 
-func Merge(labels map[string]string, moreLabels map[string]string) map[string]string {
+func Merge(labels Labels, moreLabels Labels) Labels {
 	var merged = make(map[string]string)
 	maps.Copy(merged, labels)
 	maps.Copy(merged, moreLabels)

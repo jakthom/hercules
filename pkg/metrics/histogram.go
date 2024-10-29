@@ -16,7 +16,7 @@ type HistogramMetricDefinition struct {
 
 type HistogramMetric struct {
 	Definition   HistogramMetricDefinition
-	GlobalLabels labels.GlobalLabels
+	GlobalLabels labels.Labels
 	Collector    *prometheus.HistogramVec
 }
 
@@ -56,7 +56,7 @@ func (m *HistogramMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	}
 	for _, r := range results {
 		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
-		m.Collector.With(l).Observe(r.Value)
+		m.Collector.With(map[string]string(l)).Observe(r.Value)
 	}
 	return nil
 }

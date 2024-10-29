@@ -15,7 +15,7 @@ func buildTestConfig() Config {
 		Debug: false,
 		Port:  "9999",
 		Db:    "hercules.db",
-		GlobalLabels: labels.GlobalLabels{
+		GlobalLabels: labels.Labels{
 			"cell":    "ausw1",
 			"fromEnv": "$FROMENV",
 		},
@@ -29,7 +29,7 @@ func TestInstanceLabels(t *testing.T) {
 	os.Setenv("FROMENV", env)
 	conf := buildTestConfig()
 	got := conf.InstanceLabels()
-	want := labels.GlobalLabels{
+	want := labels.Labels{
 		"cell":     "ausw1",
 		"fromEnv":  env,
 		"hercules": "fake",

@@ -7,5 +7,5 @@ type MetricPrefix string
 type MetricMetadata struct {
 	PackageName
 	MetricPrefix
-	Labels labels.GlobalLabels
+	Labels labels.Labels
 }
