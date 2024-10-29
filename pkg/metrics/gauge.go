@@ -44,7 +44,10 @@ func (m *GaugeMetric) reregister() error {
 }
 
 func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
-	m.reregister()
+	err := m.reregister()
+	if err != nil {
+		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
+	}
 	results, err := m.Definition.materializeWithConnection(conn)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
@@ -64,6 +67,9 @@ func NewGaugeMetric(definition GaugeMetricDefinition, meta herculestypes.MetricM
 		Definition:   definition,
 		GlobalLabels: meta.Labels,
 	}
-	metric.register()
+	err := metric.register()
+	if err != nil {
+		log.Error().Err(err).Interface("metric", definition.Name).Msg("could not register metric")
+	}
 	return metric
 }

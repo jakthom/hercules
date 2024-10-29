@@ -36,7 +36,10 @@ func (p *Package) InitializeWithConnection(conn *sql.Conn) error {
 		// Ensure macros
 		db.EnsureMacrosWithConnection(p.Macros, conn)
 		// Ensure sources
-		source.InitializeSourcesWithConnection(p.Sources, conn)
+		err := source.InitializeSourcesWithConnection(p.Sources, conn)
+		if err != nil {
+			log.Fatal().Interface("package", p.Name).Msg("could not initialize package sources")
+		}
 		log.Info().Interface("package", p.Name).Msg(string(p.Name) + " package initialized")
 	} else {
 		log.Trace().Msg("empty package detected - skipping initialization")
