@@ -1,5 +1,10 @@
 # Hercules
 
+[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![test](https://github.com/jakthom/hercules/actions/workflows/test.yml/badge.svg)](https://github.com/jakthom/hercules/actions/workflows/test.yml)
+[![lint](https://github.com/jakthom/hercules/actions/workflows/lint.yml/badge.svg)](https://github.com/jakthom/hercules/actions/workflows/lint.yml)
+
+
 
 <img src="assets/heracles.png" width="250" align="right"/>
 
