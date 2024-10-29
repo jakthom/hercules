@@ -226,11 +226,10 @@ A byproduct of Hercules being ridiculously efficient is the capability to **mate
 
 - Calculate prometheus-compatible metrics from geospatial data
 - Coerce unwieldy files to useful statistics using full-text search
-- Enhance metric labeling using vector similarity search
 - Use modern [pipe sql syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/) or [prql](https://prql-lang.org/) for defining and transforming your metrics
-- [Don't start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/) if you don't want to (thanks Jevans!)
+- [Don't start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/) if you don't want to.
 
 
 # Further Resources
 
-Coming soon.
+More to come.
