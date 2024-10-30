@@ -37,6 +37,7 @@
         - Metric endpoint response time ❌
 
 ## Developer niceties
+    - treat "value" resultset column as the canonical value, and the rest as dimensions/labels ❌
     - jsonschema-based config (validation, auto-complete) ❌
     - config validation (run through a local duckdb) ❌
 
@@ -52,4 +53,4 @@
     - Pull from public/s3-backed, nicely-named package registry ❌
 
 ## Outstanding questions
-
+    - 
