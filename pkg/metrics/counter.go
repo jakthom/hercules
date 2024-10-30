@@ -61,7 +61,7 @@ func (m *CounterMetric) MaterializeWithConnection(conn *sql.Conn) error {
 
 func NewCounterMetric(definition CounterMetricDefinition, meta herculestypes.MetricMetadata) CounterMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
-	definition.Name = string(meta.MetricPrefix) + string(meta.PackageName) + "_" + definition.Name
+	definition.Name = meta.Prefix() + definition.Name
 	metric := CounterMetric{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,

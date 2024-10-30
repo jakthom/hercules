@@ -63,7 +63,7 @@ func (m *HistogramMetric) MaterializeWithConnection(conn *sql.Conn) error {
 
 func NewHistogramMetric(definition HistogramMetricDefinition, meta herculestypes.MetricMetadata) HistogramMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
-	definition.Name = string(meta.MetricPrefix) + string(meta.PackageName) + "_" + definition.Name
+	definition.Name = meta.Prefix() + definition.Name
 	metric := HistogramMetric{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,
