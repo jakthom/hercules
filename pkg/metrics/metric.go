@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"database/sql"
+	"strconv"
 
 	"github.com/jakthom/hercules/pkg/db"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
@@ -28,27 +29,34 @@ type metricDefinition struct {
 }
 
 func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
-	rows, err := db.RunSqlQuery(conn, md.Sql)
-	if err != nil {
-		return nil, err
-	}
-	var results []QueryResult
+	rows, _ := db.RunSqlQuery(conn, md.Sql)
+	var queryResults []QueryResult
+
+	columns, _ := rows.Columns()
+
 	for rows.Next() {
-		result := QueryResult{}
-		if md.Labels == nil { // Scalar results
-			if err := rows.Scan(&result.Value); err != nil {
-				log.Error().Err(err).Msg("error when scanning query results")
-				return nil, err
-			}
-		} else {
-			if err := rows.Scan(&result.Labels, &result.Value); err != nil {
-				log.Error().Err(err).Msg("error when scanning query results")
-				return nil, err
-			}
+		queryResult := QueryResult{}
+
+		queryResult.Labels = make(map[string]interface{})
+		results := make([]interface{}, len(columns))
+		for i := range results {
+			results[i] = new(sql.RawBytes)
 		}
-		results = append(results, result)
+		if err := rows.Scan(results...); err != nil {
+			log.Error().Err(err).Msg("could not scan row")
+		}
+		for i, v := range results {
+			if sb, ok := v.(*sql.RawBytes); ok {
+				if columns[i] == "value" {
+					queryResult.Value, _ = strconv.ParseFloat(string(*sb), 64)
+				} else {
+					queryResult.Labels[columns[i]] = string(*sb)
+				}
+			}
+			queryResults = append(queryResults, queryResult)
+		}
 	}
-	return results, err
+	return queryResults, nil
 }
 
 type MetricDefinitions struct {
