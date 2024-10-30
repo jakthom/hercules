@@ -10,7 +10,6 @@ import (
 	"github.com/jakthom/hercules/pkg/metrics"
 	"github.com/jakthom/hercules/pkg/source"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
-	"github.com/jakthom/hercules/pkg/util"
 	"github.com/rs/zerolog/log"
 	"sigs.k8s.io/yaml"
 )
@@ -94,7 +93,6 @@ func (p *PackageConfig) GetPackage() (Package, error) {
 		// If package is local, load it from file
 		pkg, err = p.getFromFile()
 	}
-	util.Pprint(pkg)
 	if err != nil {
 		log.Debug().Stack().Err(err).Msg("could not load package from location " + p.Package)
 		return Package{}, err
