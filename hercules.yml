@@ -14,6 +14,6 @@ packages:
     variables:
       yo: yee
     metricPrefix: skt_
-  # - package: hercules-packages/example/us-zips/1.0.yml
+  - package: hercules-packages/example/us-zips/1.0.yml
   # - package: hercules-packages/example/nyc-taxi/1.0.yml
   # - package: hercules-packages/example/tpch/1.0.yml

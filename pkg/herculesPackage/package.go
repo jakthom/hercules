@@ -2,13 +2,17 @@ package herculespackage
 
 import (
 	"database/sql"
+	"io"
+	"net/http"
+	"os"
 
 	"github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/metrics"
 	"github.com/jakthom/hercules/pkg/source"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
+	"github.com/jakthom/hercules/pkg/util"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
+	"sigs.k8s.io/yaml"
 )
 
 type HerculesPackageVariables map[string]interface{}
@@ -53,20 +57,49 @@ type PackageConfig struct {
 	MetricPrefix herculestypes.MetricPrefix `json:"metricPrefix"`
 }
 
+func (p *PackageConfig) getFromFile() (Package, error) {
+	log.Debug().Interface("package", p.Package).Msg("loading " + p.Package + " package from file")
+	pkg := Package{}
+	yamlFile, err := os.ReadFile(p.Package)
+	if err != nil {
+		log.Error().Err(err).Msg("could not get package from file " + p.Package)
+	}
+	err = yaml.Unmarshal(yamlFile, &pkg)
+	return pkg, err
+}
+
+func (p *PackageConfig) getFromEndpoint() (Package, error) {
+	log.Debug().Interface("package", p.Package).Msg("loading " + p.Package + " package from endpoint")
+	pkg := Package{}
+	resp, err := http.Get(p.Package)
+	if err != nil {
+		log.Error().Err(err).Msg("could not get package from endpoint " + p.Package)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("could not read response body from endpoint " + p.Package)
+	}
+	err = yaml.Unmarshal(body, &pkg)
+	return pkg, err
+}
+
 func (p *PackageConfig) GetPackage() (Package, error) {
-	pkg := &Package{}
-	pkg.Variables = p.Variables
-	pkg.MetricPrefix = p.MetricPrefix
-	// Try to get configuration from file
-	viper.SetConfigFile(p.Package)
-	viper.SetConfigType("yaml")
-	err := viper.ReadInConfig()
+	var pkg Package
+	var err error
+	// If package is remote, load it from endpoint
+	if p.Package[0:4] == "http" {
+		pkg, err = p.getFromEndpoint()
+	} else {
+		// If package is local, load it from file
+		pkg, err = p.getFromFile()
+	}
+	util.Pprint(pkg)
 	if err != nil {
 		log.Debug().Stack().Err(err).Msg("could not load package from location " + p.Package)
 		return Package{}, err
 	}
-	if err := viper.Unmarshal(pkg); err != nil {
-		log.Error().Stack().Err(err)
-	}
-	return *pkg, nil
+	pkg.Variables = p.Variables
+	pkg.MetricPrefix = p.MetricPrefix
+	return pkg, nil
 }
