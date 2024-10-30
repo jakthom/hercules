@@ -3,6 +3,7 @@ package metrics
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 
 	"github.com/jakthom/hercules/pkg/db"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
@@ -33,6 +34,10 @@ func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryRe
 	var queryResults []QueryResult
 
 	columns, _ := rows.Columns()
+	// Explicitly lowercase all column names
+	for i, col := range columns {
+		columns[i] = strings.ToLower(col)
+	}
 
 	for rows.Next() {
 		queryResult := QueryResult{}
