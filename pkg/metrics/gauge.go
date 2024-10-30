@@ -62,7 +62,7 @@ func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
 
 func NewGaugeMetric(definition GaugeMetricDefinition, meta herculestypes.MetricMetadata) GaugeMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
-	definition.Name = string(meta.MetricPrefix) + string(meta.PackageName) + "_" + definition.Name
+	definition.Name = meta.Prefix() + definition.Name
 	metric := GaugeMetric{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,

@@ -1,0 +1,6 @@
+{
+    "yaml.schemas": {
+        "./schemas/packages.json": "./hercules-packages/*.yaml",
+        "./schemas/config.json": "/hercules.yaml",
+    }
+}

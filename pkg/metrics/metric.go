@@ -45,7 +45,7 @@ func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryRe
 		}
 		for i, v := range results {
 			if sb, ok := v.(*sql.RawBytes); ok {
-				if columns[i] == "value" {
+				if columns[i] == "value" || columns[i] == "val" || columns[i] == "v" {
 					queryResult.Value, _ = strconv.ParseFloat(string(*sb), 64)
 				} else {
 					queryResult.Labels[columns[i]] = string(*sb)

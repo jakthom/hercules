@@ -1,0 +1,65 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string",
+            "description": "Config version",
+            "default": "1"
+        },
+        "name": {
+            "type": "string",
+            "description": "Name of the hercules instance",
+            "default": "hercules"
+        },
+        "debug": {
+            "type": "boolean",
+            "description": "Enable debug logging",
+            "default": false
+        },
+        "port": {
+            "type": "integer",
+            "description": "Port to listen on",
+            "default": "9999"
+        },
+        "globalLabels": {
+            "type": "array",
+            "description": "Global labels injected from config",
+            "items": {
+                "type": "object"
+            }
+        },
+        "packages": {
+            "type": "array",
+            "description": "Packages to load",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "package": {
+                        "type": "string"
+                    },
+                    "variables": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "metricPrefix": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "package"
+                ]
+            }
+        }
+    },
+    "required": [
+        "version",
+        "name",
+        "debug",
+        "db",
+        "port",
+        "packages"
+    ]
+}

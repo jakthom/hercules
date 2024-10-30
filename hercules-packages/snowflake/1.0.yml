@@ -30,7 +30,7 @@ metrics:
     - name: query_status_count
       help: Queries executed and their associated status by user and warehouse
       enabled: true
-      sql: from snowflake_query_history select user_name as user, warehouse_name as warehouse, lower(execution_status) as status, count(*) as value group by all;
+      sql: from snowflake_query_history select user_name as user, warehouse_name as warehouse, lower(execution_status) as status, count(*) as val group by all;
       labels:
         - user
         - warehouse
@@ -39,7 +39,7 @@ metrics:
     - name: queries_this_week_total
       help: Queries this week total, by user and warehouse
       enabled: true
-      sql: select user_name as user, warehouse_name as warehouse, count(*) as value from snowflake_query_history group by all;
+      sql: select user_name as user, warehouse_name as warehouse, count(*) as v from snowflake_query_history group by all;
       labels:
         - user
         - warehouse

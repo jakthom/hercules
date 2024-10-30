@@ -23,7 +23,7 @@ const (
 	// Default Config Values
 	DEFAULT_DEBUG bool   = false
 	DEFAULT_PORT  string = "9999"
-	DEFAULT_DB    string = "hercules.db"
+	DEFAULT_DB    string = "h.db"
 	// Labels
 	HERCULES_NAME_LABEL = "hercules"
 )
@@ -71,8 +71,9 @@ func GetConfig() (Config, error) {
 		log.Error().Stack().Err(err).Msg("could not read config - using defaults")
 		config.Debug = DEFAULT_DEBUG
 		config.Port = DEFAULT_PORT
-		config.Db = DEFAULT_DB
 	}
+	// Mandatory defaults
+	config.Db = DEFAULT_DB
 	if err := viper.Unmarshal(config); err != nil {
 		log.Error().Stack().Err(err)
 	}

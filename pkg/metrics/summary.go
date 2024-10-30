@@ -67,7 +67,7 @@ func (m *SummaryMetric) MaterializeWithConnection(conn *sql.Conn) error {
 
 func NewSummaryMetric(definition SummaryMetricDefinition, meta herculestypes.MetricMetadata) SummaryMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
-	definition.Name = string(meta.MetricPrefix) + string(meta.PackageName) + "_" + definition.Name
+	definition.Name = meta.Prefix() + definition.Name
 	metric := SummaryMetric{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,

@@ -83,14 +83,24 @@ func (p *PackageConfig) getFromEndpoint() (Package, error) {
 	return pkg, err
 }
 
+func (p *PackageConfig) getFromObjectStorage() (Package, error) {
+	// log.Debug().Interface("package", p.Package).Msg("loading " + p.Package + " package from object storage")
+	log.Fatal().Interface("package", p.Package).Msg("object storage-backed packages are not yet supported")
+	pkg := Package{}
+	return pkg, nil
+}
+
 func (p *PackageConfig) GetPackage() (Package, error) {
 	var pkg Package
 	var err error
-	// If package is remote, load it from endpoint
-	if p.Package[0:4] == "http" {
+	switch p.Package[0:4] {
+	case "http":
 		pkg, err = p.getFromEndpoint()
-	} else {
-		// If package is local, load it from file
+	case "s3:/":
+		pkg, err = p.getFromObjectStorage()
+	case "gcs:":
+		pkg, err = p.getFromObjectStorage()
+	default:
 		pkg, err = p.getFromFile()
 	}
 	if err != nil {

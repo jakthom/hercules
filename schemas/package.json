@@ -1,0 +1,234 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "Hercules Package",
+    "description": "Configuration for Hercules Packages",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Name of the package"
+        },
+        "version": {
+            "type": "string",
+            "description": "Version of the package"
+        },
+        "macros": {
+            "type": "array",
+            "description": "Package macros",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sql": {
+                        "type": "string",
+                        "description": "SQL query for the macro"
+                    }
+                },
+                "required": [
+                    "sql"
+                ]
+            }
+        },
+        "sources": {
+            "type": "array",
+            "description": "Package sources",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the source"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Type of the source (e.g. parquet)",
+                        "options": [
+                            "sql",
+                            "parquet",
+                            "json",
+                            "csv"
+                        ]
+                    },
+                    "source": {
+                        "type": "string",
+                        "description": "The source definition - file path or sql statement"
+                    },
+                    "materialize": {
+                        "type": "boolean",
+                        "description": "Whether to materialize the source",
+                        "default": true
+                    },
+                    "refreshIntervalSeconds": {
+                        "type": "integer",
+                        "description": "Refresh interval in seconds",
+                        "default": 5
+                    }
+                },
+                "required": [
+                    "name",
+                    "type",
+                    "source",
+                    "materialize"
+                ]
+            }
+        },
+        "metrics": {
+            "type": "object",
+            "properties": {
+                "gauge": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Name of the gauge metric"
+                            },
+                            "help": {
+                                "type": "string",
+                                "description": "Help text for the gauge metric"
+                            },
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Whether the gauge metric is enabled"
+                            },
+                            "sql": {
+                                "type": "string",
+                                "description": "SQL query for the gauge metric"
+                            },
+                            "labels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "help",
+                            "enabled",
+                            "sql"
+                        ]
+                    }
+                },
+                "histogram": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Name of the histogram metric"
+                            },
+                            "help": {
+                                "type": "string",
+                                "description": "Help text for the histogram metric"
+                            },
+                            "sql": {
+                                "type": "string",
+                                "description": "SQL query for the histogram metric"
+                            },
+                            "labels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "buckets": {
+                                "type": "array",
+                                "items": {
+                                    "type": "number"
+                                }
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "help",
+                            "sql",
+                            "buckets"
+                        ]
+                    }
+                },
+                "summary": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Name of the summary metric"
+                            },
+                            "help": {
+                                "type": "string",
+                                "description": "Help text for the summary metric"
+                            },
+                            "sql": {
+                                "type": "string",
+                                "description": "SQL query for the summary metric"
+                            },
+                            "labels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "objectives": {
+                                "type": "array",
+                                "items": {
+                                    "type": "number"
+                                }
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "help",
+                            "sql",
+                            "objectives"
+                        ]
+                    }
+                },
+                "counter": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Name of the counter metric"
+                            },
+                            "help": {
+                                "type": "string",
+                                "description": "Help text for the counter metric"
+                            },
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Whether the counter metric is enabled"
+                            },
+                            "sql": {
+                                "type": "string",
+                                "description": "SQL query for the counter metric"
+                            },
+                            "labels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "help",
+                            "enabled",
+                            "sql"
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "required": [
+        "name",
+        "version",
+        "sources",
+        "metrics"
+    ]
+}
