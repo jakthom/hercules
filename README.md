@@ -9,12 +9,12 @@
 <img src="assets/heracles.png" width="250" align="right"/>
 
 
-### Hercules is a Prometheus-compatible exporter that supercharges your metrics.
+### Hercules is a Prometheus-compatible exporter that supercharges metrics.
 
 
-* **Generate prometheus-compatible metrics** from parquet, csv files, json logs, data lakes, databases, http endpoints, and much more.
+* **Generate Prometheus metrics** from parquet, csv files, json logs, data lakes, databases, http endpoints, and more.
 
-* **Generate enriched, labeled** metrics properly from the source; don't relabel using your favorite metrics database.
+* **Generate enriched, labeled** metrics properly from the source. Don't relabel using your favorite timeseries database.
 
 * **Embrace** the pantheon of metrics harvesting using Prometheus-compatible scrape targets that easily tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
 
@@ -87,11 +87,13 @@ Hercules supports the following metric types:
 ```
 metrics:
   gauge:
-    - name: nyc_pickup_location_fare_total // Prometheus metric name
-      help: Total NYC fares for the month of August by pickup location // Prometheus help tag
-      sql: select struct_pack(pickupLocation := PULocationID::text), sum(fare_amount) as val from nyc_yellow_taxi_june_2024 group by 1 // SQL-based metric definition
-      labels: // Struct key(s) to be parsed and injected into metric labels
-        - pickupLocation
+    - name: queries_this_week_total
+      help: Queries this week total by user and warehouse
+      enabled: true
+      sql: select user_name as user, warehouse_name as warehouse, count(*) as value from snowflake_query_history group by all;
+      labels:
+        - user
+        - warehouse
 ```
 
 
@@ -100,8 +102,8 @@ metrics:
 metrics:
   histogram:
     - name: query_duration_seconds
-      help: Histogram of Snowflake virtual warehouse query duration seconds
-      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value;
+      help: Histogram of query duration seconds
+      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
       labels:
         - user
         - warehouse
@@ -120,8 +122,8 @@ metrics:
 ```
   summary:
     - name: virtual_warehouse_query_duration_seconds
-      help: Summary of Snowflake virtual warehouse query duration seconds
-      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value;
+      help: Summary of query duration seconds
+      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
       labels:
         - user
         - warehouse
@@ -132,6 +134,7 @@ metrics:
         - 0.5
         - 0.9
         - 0.99
+
 ```
 
 
@@ -139,8 +142,8 @@ metrics:
 ```
   counter:
     - name: queries_executed_count
-      help: The count of Snowflake queries executed by user and warehouse
-      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, 1 as value;
+      help: The count of queries executed by user and warehouse
+      sql: select user_name as user, warehouse_name as warehouse, 1 as value from snowflake_query_history;
       labels:
         - user
         - warehouse
@@ -219,7 +222,7 @@ packages:
 
 ### Embedded Analytics
 
-A byproduct of Hercules being ridiculously efficient is the capability to **materialize and serve a lot more metrics, from a lot more sources, using a single Prometheus scrape endpoint.**
+A byproduct of Hercules being ridiculously efficient and flexible is the capability to **materialize a lot more metrics, from a lot more sources, using a single Prometheus scrape endpoint.**
 
 
 ### Other Hercules Niceties
@@ -227,7 +230,7 @@ A byproduct of Hercules being ridiculously efficient is the capability to **mate
 - Calculate prometheus-compatible metrics from geospatial data
 - Coerce unwieldy files to useful statistics using full-text search
 - Use modern [pipe sql syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/) or [prql](https://prql-lang.org/) for defining and transforming your metrics
-- [Don't start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/) if you don't want to.
+- You don't need to [start queries with `select`](https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/).
 
 
 # Further Resources

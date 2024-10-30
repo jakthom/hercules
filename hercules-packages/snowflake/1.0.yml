@@ -30,7 +30,7 @@ metrics:
     - name: query_status_count
       help: Queries executed and their associated status by user and warehouse
       enabled: true
-      sql: from snowflake_query_history select struct_pack(user :=  user_name, warehouse := warehouse_name, status := lower(execution_status)) as labels, count(*) as value group by 1;
+      sql: from snowflake_query_history select user_name as user, warehouse_name as warehouse, lower(execution_status) as status, count(*) as value group by all;
       labels:
         - user
         - warehouse
@@ -39,7 +39,7 @@ metrics:
     - name: queries_this_week_total
       help: Queries this week total, by user and warehouse
       enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, count(*) as value from snowflake_query_history group by 1;
+      sql: select user_name as user, warehouse_name as warehouse, count(*) as value from snowflake_query_history group by all;
       labels:
         - user
         - warehouse
@@ -47,7 +47,7 @@ metrics:
     - name: avg_query_duration_seconds
       help: The average query duration for a particular user, using a particular warehouse
       enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by 1;
+      sql: select user_name as user, warehouse_name as warehouse, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by all;
       labels:
         - user
         - warehouse
@@ -55,7 +55,7 @@ metrics:
     - name: table_operations_count
       help: The number of operations on each table over the last week
       enabled: true
-      sql: select struct_pack(user := user_name, query_type := query_type) as labels, count(*) as value from snowflake_query_history group by 1;
+      sql: select user_name as user, query_type as query_type, count(*) as value from snowflake_query_history group by all;
       labels:
         - user
         - query_type
@@ -63,7 +63,7 @@ metrics:
     - name: avg_virtual_warehouse_spill_to_local_storage_bytes
       help: The average bytes spilled to disk for queries on a specific warehouse
       enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_LOCAL_STORAGE) as value from snowflake_query_history group by 1;
+      sql: select user_name as user, warehouse_name as warehouse, avg(BYTES_SPILLED_TO_LOCAL_STORAGE) as value from snowflake_query_history group by all;
       labels:
         - user
         - warehouse
@@ -71,7 +71,7 @@ metrics:
     - name: avg_virtual_warehouse_spill_to_remote_storage_bytes
       help: The average bytes spilled to remote disk for queries on a specific warehouse
       enabled: true
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, avg(BYTES_SPILLED_TO_REMOTE_STORAGE) as value from snowflake_query_history group by 1;
+      sql: select user_name as user, warehouse_name as warehouse, avg(BYTES_SPILLED_TO_REMOTE_STORAGE) as value from snowflake_query_history group by all;
       labels:
         - user
         - warehouse
@@ -79,7 +79,7 @@ metrics:
   histogram:
     - name: query_duration_seconds
       help: Histogram of query duration seconds
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value from snowflake_query_history;
+      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
       labels:
         - user
         - warehouse
@@ -106,7 +106,7 @@ metrics:
   summary:
     - name: virtual_warehouse_query_duration_seconds
       help: Summary of query duration seconds
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, total_elapsed_time as value from snowflake_query_history;
+      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
       labels:
         - user
         - warehouse
@@ -121,7 +121,7 @@ metrics:
   counter:
     - name: queries_executed_count
       help: The count of queries executed by user and warehouse
-      sql: select struct_pack(user :=  user_name, warehouse := warehouse_name) as labels, 1 as value from snowflake_query_history;
+      sql: select user_name as user, warehouse_name as warehouse, 1 as value from snowflake_query_history;
       labels:
         - user
         - warehouse
