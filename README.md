@@ -70,7 +70,7 @@ sources:
 
 Metric definitions are `yml` and use `sql` in a number of supported dialects to aggregate, enrich, and materialize metric values.
 
-Metric materialization expects two fields in the query resultset: a `struct` field of `tags` and a `value` column corresponding to the metric value.
+Metric materialization expects a single field in the resultset that correponds to the **metric value**. This field can be titled `value`, `val`, or simply `v`. All other fields are considered **metric labels**.
 
 #### Prometheus Metric Types
 
