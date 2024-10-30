@@ -55,7 +55,7 @@ metrics:
     - name: table_operations_count
       help: The number of operations on each table over the last week
       enabled: true
-      sql: select user_name as user, query_type, count(*) as value from snowflake_query_history group by all;
+      sql: select user_name as user, query_type as query_type, count(*) as value from snowflake_query_history group by all;
       labels:
         - user
         - query_type
