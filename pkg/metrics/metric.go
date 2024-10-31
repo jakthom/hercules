@@ -31,6 +31,6 @@ func (m *MetricDefinitions) Merge(metricDefinitions MetricDefinitions) {
 	m.Histogram = append(m.Histogram, metricDefinitions.Histogram...)
 }
 
-type MaterializeableMetric interface {
+type Materializeable interface {
 	MaterializeWithConnection(conn *sql.Conn) error
 }

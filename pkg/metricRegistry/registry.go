@@ -18,31 +18,23 @@ type MetricRegistry struct {
 }
 
 func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
-	for _, gauge := range mr.Gauge {
-		err := gauge.MaterializeWithConnection(conn)
-		if err != nil {
-			log.Error().Err(err)
-		}
+	var m []metrics.Materializeable
+	for _, metric := range mr.Gauge {
+		m = append(m, &metric)
 	}
-
-	for _, histogram := range mr.Histogram {
-		err := histogram.MaterializeWithConnection(conn)
-		if err != nil {
-			log.Error().Err(err)
-		}
+	for _, metric := range mr.Histogram {
+		m = append(m, &metric)
 	}
-
-	for _, summary := range mr.Summary {
-		err := summary.MaterializeWithConnection(conn)
-		if err != nil {
-			log.Error().Err(err)
-		}
+	for _, metric := range mr.Summary {
+		m = append(m, &metric)
 	}
-
-	for _, counter := range mr.Counter {
-		err := counter.MaterializeWithConnection(conn)
+	for _, metric := range mr.Counter {
+		m = append(m, &metric)
+	}
+	for _, materializable := range m {
+		err := materializable.MaterializeWithConnection(conn)
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().Err(err).Msg("could not materialize metric")
 		}
 	}
 	return nil
