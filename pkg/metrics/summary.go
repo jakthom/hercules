@@ -9,13 +9,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type SummaryMetric struct {
+type Summary struct {
 	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.SummaryVec
 }
 
-func (m *SummaryMetric) AsVec() *prometheus.SummaryVec {
+func (m *Summary) AsVec() *prometheus.SummaryVec {
 	objectives := make(map[float64]float64)
 	for _, o := range m.Definition.Objectives {
 		objectives[o] = o
@@ -30,20 +30,20 @@ func (m *SummaryMetric) AsVec() *prometheus.SummaryVec {
 	return v
 }
 
-func (m *SummaryMetric) register() error {
+func (m *Summary) register() error {
 	collector := m.AsVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
 }
 
-func (m *SummaryMetric) reregister() error {
+func (m *Summary) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(m.Collector)
 	return m.register()
 }
 
-func (m *SummaryMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (m *Summary) MaterializeWithConnection(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
@@ -60,10 +60,10 @@ func (m *SummaryMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewSummaryMetric(definition MetricDefinition, meta herculestypes.MetricMetadata) SummaryMetric {
+func NewSummary(definition MetricDefinition, meta herculestypes.MetricMetadata) Summary {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
-	metric := SummaryMetric{
+	metric := Summary{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,
 	}

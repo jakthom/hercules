@@ -11,10 +11,10 @@ import (
 type MetricRegistry struct {
 	PackageName  herculestypes.PackageName
 	MetricPrefix string
-	Gauge        map[string]metrics.GaugeMetric
-	Counter      map[string]metrics.CounterMetric
-	Summary      map[string]metrics.SummaryMetric
-	Histogram    map[string]metrics.HistogramMetric
+	Gauge        map[string]metrics.Gauge
+	Counter      map[string]metrics.Counter
+	Summary      map[string]metrics.Summary
+	Histogram    map[string]metrics.Histogram
 }
 
 func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
@@ -52,25 +52,25 @@ func NewMetricRegistry(definitions metrics.MetricDefinitions, meta herculestypes
 	r := MetricRegistry{}
 	r.PackageName = meta.PackageName
 	r.MetricPrefix = string(meta.MetricPrefix)
-	r.Gauge = make(map[string]metrics.GaugeMetric)
-	r.Histogram = make(map[string]metrics.HistogramMetric)
-	r.Summary = make(map[string]metrics.SummaryMetric)
-	r.Counter = make(map[string]metrics.CounterMetric)
+	r.Gauge = make(map[string]metrics.Gauge)
+	r.Histogram = make(map[string]metrics.Histogram)
+	r.Summary = make(map[string]metrics.Summary)
+	r.Counter = make(map[string]metrics.Counter)
 
 	for _, definition := range definitions.Gauge {
-		g := metrics.NewGaugeMetric(definition, meta)
+		g := metrics.NewGauge(definition, meta)
 		r.Gauge[g.Definition.Name] = g
 	}
 	for _, definition := range definitions.Histogram {
-		h := metrics.NewHistogramMetric(definition, meta)
+		h := metrics.NewHistogram(definition, meta)
 		r.Histogram[h.Definition.Name] = h
 	}
 	for _, definition := range definitions.Summary {
-		s := metrics.NewSummaryMetric(definition, meta)
+		s := metrics.NewSummary(definition, meta)
 		r.Summary[s.Definition.Name] = s
 	}
 	for _, definition := range definitions.Counter {
-		c := metrics.NewCounterMetric(definition, meta)
+		c := metrics.NewCounter(definition, meta)
 		r.Counter[c.Definition.Name] = c
 	}
 	return &r

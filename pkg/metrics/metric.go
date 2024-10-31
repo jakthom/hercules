@@ -5,18 +5,18 @@ import (
 	"strconv"
 
 	"github.com/jakthom/hercules/pkg/db"
-	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
 type MetricDefinition struct {
-	Name       string    `json:"name"`
-	Enabled    bool      `json:"enabled"`
-	Help       string    `json:"help"`
-	Sql        db.Sql    `json:"sql"`
-	Labels     []string  `json:"labels"`
-	Buckets    []float64 `json:"buckets"`    // If the metric is a histogram
-	Objectives []float64 `json:"objectives"` // If the metric is a summary
+	PackageName string    `json:"package_name"`
+	Name        string    `json:"name"`
+	Enabled     bool      `json:"enabled"`
+	Help        string    `json:"help"`
+	Sql         db.Sql    `json:"sql"`
+	Labels      []string  `json:"labels"`
+	Buckets     []float64 `json:"buckets"`    // If the metric is a histogram
+	Objectives  []float64 `json:"objectives"` // If the metric is a summary
 }
 
 func (md *MetricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
@@ -60,8 +60,4 @@ func (m *MetricDefinitions) Merge(metricDefinitions MetricDefinitions) {
 	m.Counter = append(m.Counter, metricDefinitions.Counter...)
 	m.Summary = append(m.Summary, metricDefinitions.Summary...)
 	m.Histogram = append(m.Histogram, metricDefinitions.Histogram...)
-}
-
-type MetricMetadata struct {
-	PackageName herculestypes.PackageName
 }

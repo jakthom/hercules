@@ -9,13 +9,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type HistogramMetric struct {
+type Histogram struct {
 	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.HistogramVec
 }
 
-func (m *HistogramMetric) AsVec() *prometheus.HistogramVec {
+func (m *Histogram) AsVec() *prometheus.HistogramVec {
 	var labels = m.GlobalLabels.LabelNames()
 	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -26,20 +26,20 @@ func (m *HistogramMetric) AsVec() *prometheus.HistogramVec {
 	return v
 }
 
-func (m *HistogramMetric) register() error {
+func (m *Histogram) register() error {
 	collector := m.AsVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
 }
 
-func (m *HistogramMetric) reregister() error {
+func (m *Histogram) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(m.Collector)
 	return m.register()
 }
 
-func (m *HistogramMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (m *Histogram) MaterializeWithConnection(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
@@ -56,10 +56,10 @@ func (m *HistogramMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewHistogramMetric(definition MetricDefinition, meta herculestypes.MetricMetadata) HistogramMetric {
+func NewHistogram(definition MetricDefinition, meta herculestypes.MetricMetadata) Histogram {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
-	metric := HistogramMetric{
+	metric := Histogram{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,
 	}

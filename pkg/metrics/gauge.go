@@ -9,13 +9,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type GaugeMetric struct {
+type Gauge struct {
 	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.GaugeVec
 }
 
-func (m *GaugeMetric) AsVec() *prometheus.GaugeVec {
+func (m *Gauge) AsVec() *prometheus.GaugeVec {
 	// TODO -> Combine definition labels and global labels
 	var labels = m.GlobalLabels.LabelNames()
 	labels = append(labels, m.Definition.Labels...)
@@ -26,20 +26,20 @@ func (m *GaugeMetric) AsVec() *prometheus.GaugeVec {
 	return v
 }
 
-func (m *GaugeMetric) register() error {
+func (m *Gauge) register() error {
 	collector := m.AsVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
 }
 
-func (m *GaugeMetric) reregister() error {
+func (m *Gauge) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(m.Collector)
 	return m.register()
 }
 
-func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (m *Gauge) MaterializeWithConnection(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
@@ -56,10 +56,10 @@ func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewGaugeMetric(definition MetricDefinition, meta herculestypes.MetricMetadata) GaugeMetric {
+func NewGauge(definition MetricDefinition, meta herculestypes.MetricMetadata) Gauge {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
-	metric := GaugeMetric{
+	metric := Gauge{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,
 	}
