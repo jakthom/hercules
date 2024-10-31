@@ -3,23 +3,20 @@ package metrics
 import (
 	"database/sql"
 
+	db "github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/labels"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
 
-type CounterMetricDefinition struct {
-	metricDefinition `mapstructure:",squash"`
-}
-
-type CounterMetric struct {
-	Definition   CounterMetricDefinition
+type Counter struct {
+	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.CounterVec
 }
 
-func (m *CounterMetric) AsVec() *prometheus.CounterVec {
+func (m *Counter) AsVec() *prometheus.CounterVec {
 	var labels = m.GlobalLabels.LabelNames()
 	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -29,25 +26,25 @@ func (m *CounterMetric) AsVec() *prometheus.CounterVec {
 	return v
 }
 
-func (m *CounterMetric) register() error {
+func (m *Counter) register() error {
 	collector := m.AsVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
 }
 
-func (m *CounterMetric) reregister() error {
+func (m *Counter) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(m.Collector)
 	return m.register()
 }
 
-func (m *CounterMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (m *Counter) Materialize(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 	}
-	results, err := m.Definition.materializeWithConnection(conn)
+	results, err := db.Materialize(conn, m.Definition.Sql)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 		return err
@@ -59,10 +56,10 @@ func (m *CounterMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewCounterMetric(definition CounterMetricDefinition, meta herculestypes.MetricMetadata) CounterMetric {
+func NewCounter(definition MetricDefinition, meta herculestypes.MetricMetadata) Counter {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
-	metric := CounterMetric{
+	metric := Counter{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,
 	}

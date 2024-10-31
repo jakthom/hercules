@@ -3,23 +3,20 @@ package metrics
 import (
 	"database/sql"
 
+	db "github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/labels"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
 
-type GaugeMetricDefinition struct {
-	metricDefinition `mapstructure:",squash"`
-}
-
-type GaugeMetric struct {
-	Definition   GaugeMetricDefinition
+type Gauge struct {
+	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.GaugeVec
 }
 
-func (m *GaugeMetric) AsVec() *prometheus.GaugeVec {
+func (m *Gauge) AsVec() *prometheus.GaugeVec {
 	// TODO -> Combine definition labels and global labels
 	var labels = m.GlobalLabels.LabelNames()
 	labels = append(labels, m.Definition.Labels...)
@@ -30,25 +27,26 @@ func (m *GaugeMetric) AsVec() *prometheus.GaugeVec {
 	return v
 }
 
-func (m *GaugeMetric) register() error {
+func (m *Gauge) register() error {
 	collector := m.AsVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
 }
 
-func (m *GaugeMetric) reregister() error {
+func (m *Gauge) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(m.Collector)
 	return m.register()
 }
 
-func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
+func (m *Gauge) Materialize(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 	}
-	results, err := m.Definition.materializeWithConnection(conn)
+
+	results, err := db.Materialize(conn, m.Definition.Sql)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 		return err
@@ -60,10 +58,10 @@ func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewGaugeMetric(definition GaugeMetricDefinition, meta herculestypes.MetricMetadata) GaugeMetric {
+func NewGauge(definition MetricDefinition, meta herculestypes.MetricMetadata) Gauge {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
-	metric := GaugeMetric{
+	metric := Gauge{
 		Definition:   definition,
 		GlobalLabels: meta.Labels,
 	}

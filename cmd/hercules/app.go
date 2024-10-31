@@ -37,13 +37,13 @@ type Hercules struct {
 func (d *Hercules) configure() {
 	log.Debug().Msg("configuring Hercules")
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	debug := os.Getenv(config.DEBUG)
-	if debug != "" && (debug == "true" || debug == "1" || debug == "True") {
+	debug := config.IsDebugMode()
+	if debug {
 		d.debug = true
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
-	trace := os.Getenv(config.TRACE)
-	if trace != "" && (trace == "true" || trace == "1" || trace == "True") {
+	trace := config.IsTraceMode()
+	if trace {
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
 	}
 	d.config, _ = config.GetConfig()

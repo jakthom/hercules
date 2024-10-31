@@ -84,7 +84,6 @@ func (p *PackageConfig) getFromEndpoint() (Package, error) {
 }
 
 func (p *PackageConfig) getFromObjectStorage() (Package, error) {
-	// log.Debug().Interface("package", p.Package).Msg("loading " + p.Package + " package from object storage")
 	log.Fatal().Interface("package", p.Package).Msg("object storage-backed packages are not yet supported")
 	pkg := Package{}
 	return pkg, nil
