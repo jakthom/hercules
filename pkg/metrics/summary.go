@@ -3,6 +3,7 @@ package metrics
 import (
 	"database/sql"
 
+	db "github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/labels"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
@@ -48,7 +49,7 @@ func (m *Summary) MaterializeWithConnection(conn *sql.Conn) error {
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 	}
-	results, err := m.Definition.materializeWithConnection(conn)
+	results, err := db.MaterializeWithConnection(conn, m.Definition.Sql)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 		return err
