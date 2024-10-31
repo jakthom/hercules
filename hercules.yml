@@ -14,4 +14,4 @@ packages:
       yo: yee # Inject these variables to the package definition
     metricPrefix: skt_ # Prefix all metrics with this
   - package: hercules-packages/example/us-zips/1.0.yml
-  - package: hercules-packages/example/nyc-taxi/1.0.yml
+  # - package: hercules-packages/example/nyc-taxi/1.0.yml

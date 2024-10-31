@@ -9,12 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type GaugeMetricDefinition struct {
-	metricDefinition `mapstructure:",squash"`
-}
-
 type GaugeMetric struct {
-	Definition   GaugeMetricDefinition
+	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.GaugeVec
 }
@@ -60,7 +56,7 @@ func (m *GaugeMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewGaugeMetric(definition GaugeMetricDefinition, meta herculestypes.MetricMetadata) GaugeMetric {
+func NewGaugeMetric(definition MetricDefinition, meta herculestypes.MetricMetadata) GaugeMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
 	metric := GaugeMetric{

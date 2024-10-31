@@ -9,13 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type HistogramMetricDefinition struct {
-	metricDefinition `mapstructure:",squash"`
-	Buckets          []float64
-}
-
 type HistogramMetric struct {
-	Definition   HistogramMetricDefinition
+	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.HistogramVec
 }
@@ -61,7 +56,7 @@ func (m *HistogramMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewHistogramMetric(definition HistogramMetricDefinition, meta herculestypes.MetricMetadata) HistogramMetric {
+func NewHistogramMetric(definition MetricDefinition, meta herculestypes.MetricMetadata) HistogramMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
 	metric := HistogramMetric{

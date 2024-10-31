@@ -9,12 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type CounterMetricDefinition struct {
-	metricDefinition `mapstructure:",squash"`
-}
-
 type CounterMetric struct {
-	Definition   CounterMetricDefinition
+	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.CounterVec
 }
@@ -59,7 +55,7 @@ func (m *CounterMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewCounterMetric(definition CounterMetricDefinition, meta herculestypes.MetricMetadata) CounterMetric {
+func NewCounterMetric(definition MetricDefinition, meta herculestypes.MetricMetadata) CounterMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
 	metric := CounterMetric{

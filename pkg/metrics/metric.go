@@ -9,26 +9,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type MetricType string
-
-const (
-	// Metric Types
-	CounterMetricType   MetricType = "counter"
-	GaugeMetricType     MetricType = "gauge"
-	HistogramMetricType MetricType = "histogram"
-	SummaryMetricType   MetricType = "summary"
-)
-
-type metricDefinition struct {
-	Name    string     `json:"name"`
-	Enabled bool       `json:"enabled"`
-	Type    MetricType `json:"type"`
-	Help    string     `json:"help"`
-	Sql     db.Sql     `json:"sql"`
-	Labels  []string   `json:"labels"`
+type MetricDefinition struct {
+	Name       string    `json:"name"`
+	Enabled    bool      `json:"enabled"`
+	Help       string    `json:"help"`
+	Sql        db.Sql    `json:"sql"`
+	Labels     []string  `json:"labels"`
+	Buckets    []float64 `json:"buckets"`    // If the metric is a histogram
+	Objectives []float64 `json:"objectives"` // If the metric is a summary
 }
 
-func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
+func (md *MetricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryResult, error) {
 	rows, _ := db.RunSqlQuery(conn, md.Sql)
 	var queryResults []QueryResult
 	columns, _ := rows.Columns()
@@ -58,10 +49,10 @@ func (md *metricDefinition) materializeWithConnection(conn *sql.Conn) ([]QueryRe
 }
 
 type MetricDefinitions struct {
-	Gauge     []GaugeMetricDefinition     `json:"gauge"`
-	Counter   []CounterMetricDefinition   `json:"counter"`
-	Summary   []SummaryMetricDefinition   `json:"summary"`
-	Histogram []HistogramMetricDefinition `json:"histogram"`
+	Gauge     []MetricDefinition `json:"gauge"`
+	Counter   []MetricDefinition `json:"counter"`
+	Summary   []MetricDefinition `json:"summary"`
+	Histogram []MetricDefinition `json:"histogram"`
 }
 
 func (m *MetricDefinitions) Merge(metricDefinitions MetricDefinitions) {

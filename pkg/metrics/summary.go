@@ -9,13 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type SummaryMetricDefinition struct {
-	metricDefinition `mapstructure:",squash"`
-	Objectives       []float64
-}
-
 type SummaryMetric struct {
-	Definition   SummaryMetricDefinition
+	Definition   MetricDefinition
 	GlobalLabels labels.Labels
 	Collector    *prometheus.SummaryVec
 }
@@ -65,7 +60,7 @@ func (m *SummaryMetric) MaterializeWithConnection(conn *sql.Conn) error {
 	return nil
 }
 
-func NewSummaryMetric(definition SummaryMetricDefinition, meta herculestypes.MetricMetadata) SummaryMetric {
+func NewSummaryMetric(definition MetricDefinition, meta herculestypes.MetricMetadata) SummaryMetric {
 	// TODO! Turn this into a generic function instead of copy/pasta
 	definition.Name = meta.Prefix() + definition.Name
 	metric := SummaryMetric{
