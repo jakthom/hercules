@@ -17,7 +17,7 @@ type MetricRegistry struct {
 	Histogram    map[string]metrics.Histogram
 }
 
-func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
+func (mr *MetricRegistry) Materialize(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
 	var m []metrics.Materializeable
 	for _, metric := range mr.Gauge {
 		m = append(m, &metric)
@@ -32,7 +32,7 @@ func (mr *MetricRegistry) MaterializeWithConnection(conn *sql.Conn) error { // T
 		m = append(m, &metric)
 	}
 	for _, materializable := range m {
-		err := materializable.MaterializeWithConnection(conn)
+		err := materializable.Materialize(conn)
 		if err != nil {
 			log.Error().Err(err).Msg("could not materialize metric")
 		}

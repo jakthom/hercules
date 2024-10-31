@@ -33,8 +33,8 @@ func RunSqlQuery(conn *sql.Conn, query Sql) (*sql.Rows, error) {
 	return rows, err
 }
 
-func MaterializeWithConnection(c *sql.Conn, s Sql) ([]QueryResult, error) {
-	rows, _ := RunSqlQuery(c, s)
+func Materialize(conn *sql.Conn, query Sql) ([]QueryResult, error) {
+	rows, _ := RunSqlQuery(conn, query)
 	var queryResults []QueryResult
 	columns, _ := rows.Columns()
 	for rows.Next() {

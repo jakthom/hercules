@@ -32,5 +32,5 @@ func (m *MetricDefinitions) Merge(metricDefinitions MetricDefinitions) {
 }
 
 type Materializeable interface {
-	MaterializeWithConnection(conn *sql.Conn) error
+	Materialize(conn *sql.Conn) error
 }

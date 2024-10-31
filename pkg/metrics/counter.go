@@ -39,12 +39,12 @@ func (m *Counter) reregister() error {
 	return m.register()
 }
 
-func (m *Counter) MaterializeWithConnection(conn *sql.Conn) error {
+func (m *Counter) Materialize(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 	}
-	results, err := db.MaterializeWithConnection(conn, m.Definition.Sql)
+	results, err := db.Materialize(conn, m.Definition.Sql)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 		return err
