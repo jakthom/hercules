@@ -4,16 +4,14 @@ import (
 	"database/sql"
 
 	"github.com/jakthom/hercules/pkg/metric"
-	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
 type MetricRegistry struct {
-	PackageName herculestypes.PackageName
-	Gauge       map[string]metric.Gauge
-	Counter     map[string]metric.Counter
-	Summary     map[string]metric.Summary
-	Histogram   map[string]metric.Histogram
+	Gauge     map[string]metric.Gauge
+	Counter   map[string]metric.Counter
+	Summary   map[string]metric.Summary
+	Histogram map[string]metric.Histogram
 }
 
 func (mr *MetricRegistry) Materialize(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
@@ -48,19 +46,19 @@ func NewMetricRegistry(definitions metric.MetricDefinitions) *MetricRegistry {
 
 	for _, definition := range definitions.Gauge {
 		g := metric.NewGauge(*definition)
-		r.Gauge[g.Definition.Name] = g
+		r.Gauge[g.Definition.FullName()] = g
 	}
 	for _, definition := range definitions.Histogram {
 		h := metric.NewHistogram(*definition)
-		r.Histogram[h.Definition.Name] = h
+		r.Histogram[h.Definition.FullName()] = h
 	}
 	for _, definition := range definitions.Summary {
 		s := metric.NewSummary(*definition)
-		r.Summary[s.Definition.Name] = s
+		r.Summary[s.Definition.FullName()] = s
 	}
 	for _, definition := range definitions.Counter {
 		c := metric.NewCounter(*definition)
-		r.Counter[c.Definition.Name] = c
+		r.Counter[c.Definition.FullName()] = c
 	}
 	return &r
 }

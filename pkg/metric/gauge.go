@@ -60,7 +60,7 @@ func NewGauge(definition MetricDefinition) Gauge {
 	}
 	err := metric.register()
 	if err != nil {
-		log.Error().Err(err).Interface("metric", definition.Name).Msg("could not register metric")
+		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
 	}
 	return metric
 }
