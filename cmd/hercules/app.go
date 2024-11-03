@@ -13,6 +13,7 @@ import (
 	"github.com/jakthom/hercules/pkg/config"
 	"github.com/jakthom/hercules/pkg/flock"
 	herculespackage "github.com/jakthom/hercules/pkg/herculesPackage"
+	"github.com/jakthom/hercules/pkg/metric"
 	registry "github.com/jakthom/hercules/pkg/metricRegistry"
 	"github.com/jakthom/hercules/pkg/middleware"
 	"github.com/prometheus/client_golang/prometheus"
@@ -56,6 +57,11 @@ func (d *Hercules) loadPackages() {
 	pkgs := []herculespackage.Package{}
 	for _, pkgConfig := range d.config.Packages {
 		pkg, err := pkgConfig.GetPackage()
+		pkg.Metadata = metric.Metadata{
+			PackageName: string(pkg.Name),
+			Prefix:      pkgConfig.MetricPrefix,
+			Labels:      d.config.InstanceLabels(),
+		}
 		if err != nil {
 			log.Error().Err(err).Msg("could not get package")
 		}
@@ -69,6 +75,10 @@ func (d *Hercules) loadPackages() {
 		Macros:     d.config.Macros,
 		Sources:    d.config.Sources,
 		Metrics:    d.config.Metrics,
+		Metadata: metric.Metadata{
+			PackageName: "core",
+			Labels:      d.config.InstanceLabels(),
+		},
 	})
 	d.packages = pkgs
 

@@ -9,12 +9,11 @@ import (
 )
 
 type MetricRegistry struct {
-	PackageName  herculestypes.PackageName
-	MetricPrefix string
-	Gauge        map[string]metric.Gauge
-	Counter      map[string]metric.Counter
-	Summary      map[string]metric.Summary
-	Histogram    map[string]metric.Histogram
+	PackageName herculestypes.PackageName
+	Gauge       map[string]metric.Gauge
+	Counter     map[string]metric.Counter
+	Summary     map[string]metric.Summary
+	Histogram   map[string]metric.Histogram
 }
 
 func (mr *MetricRegistry) Materialize(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
@@ -48,19 +47,19 @@ func NewMetricRegistry(definitions metric.MetricDefinitions) *MetricRegistry {
 	r.Counter = make(map[string]metric.Counter)
 
 	for _, definition := range definitions.Gauge {
-		g := metric.NewGauge(definition)
+		g := metric.NewGauge(*definition)
 		r.Gauge[g.Definition.Name] = g
 	}
 	for _, definition := range definitions.Histogram {
-		h := metric.NewHistogram(definition)
+		h := metric.NewHistogram(*definition)
 		r.Histogram[h.Definition.Name] = h
 	}
 	for _, definition := range definitions.Summary {
-		s := metric.NewSummary(definition)
+		s := metric.NewSummary(*definition)
 		r.Summary[s.Definition.Name] = s
 	}
 	for _, definition := range definitions.Counter {
-		c := metric.NewCounter(definition)
+		c := metric.NewCounter(*definition)
 		r.Counter[c.Definition.Name] = c
 	}
 	return &r

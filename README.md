@@ -6,17 +6,19 @@
 # Hercules
 
 
-<img src="assets/heracles.png" width="250" align="right"/>
+<img src="assets/heracles.png" width="30%" align="right"/>
 
 
-### Hercules is a Prometheus-compatible exporter that supercharges metrics.
+### A Prometheus exporter that supercharges metrics.
 
 
-* **Generate Prometheus metrics** from parquet, csv files, json logs, data lakes, databases, http endpoints, and more.
+* **Write SQL, get metrics.**
 
-* **Generate enriched, labeled** metrics properly from the source. Don't relabel using your favorite timeseries database.
+* **Query a pantheon of sources** - files, http endpoints, databases, data lakes, and more.
 
-* **Embrace** the pantheon of metrics harvesting using Prometheus-compatible scrape targets that easily tame [TPC-H benchmarks](https://www.tpc.org/information/benchmarks5.asp).
+* **Enrich metrics** by joining to external metadata.
+
+* **Tame massive datasets** using embedded OLAP
 
 
 # Getting Started
@@ -24,7 +26,7 @@
 
 ### Prerequisites
 
-You'll need `go >=1.22` on your machine.
+You'll need `go >=1.23` on your machine.
 
 ### Clone and Run Hercules Locally
 
@@ -41,9 +43,9 @@ make run
 
 # Features
 
-### Sources
+### Multi-Source
 
-Hercules materializes metrics from data sources such as:
+Hercules materializes metrics from sources such as:
 - **Local files** (parquet, json, csv, xlsx, etc)
 - **Object storage** (GCS, S3, Azure Blob)
 - **HTTP endpoints**
@@ -66,7 +68,7 @@ sources:
     refreshIntervalSeconds: 100
 ```
 
-### Metrics
+### SQL-based Metric Definitions
 
 Metric definitions are `yml` and use `sql` in a number of supported dialects to aggregate, enrich, and materialize metric values.
 
@@ -150,7 +152,7 @@ metrics:
 ```
 
 
-### Metric Enrichment
+### Enrich Metrics
 
 Hercules **sources** and **metrics** can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), ***properly-labeled*** metrics.
 
@@ -168,7 +170,7 @@ sources:
 ```
 
 
-### Macros
+### DRY Metric Definitions
 
 Metric definitions can be kept DRY using Hercules macros.
 
@@ -189,7 +191,7 @@ macros:
 ```
 
 
-### Global Labels
+### Global Labeling
 
 Hercules allows global labels to be propagated to all configured metrics. So you don't have to guess where a metric came from.
 

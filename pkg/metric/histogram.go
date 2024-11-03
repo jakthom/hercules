@@ -10,19 +10,16 @@ import (
 )
 
 type Histogram struct {
-	Definition   MetricDefinition
-	GlobalLabels labels.Labels
-	Collector    *prometheus.HistogramVec
+	Definition MetricDefinition
+	Collector  *prometheus.HistogramVec
 }
 
 func (m *Histogram) AsVec() *prometheus.HistogramVec {
-	var labels = m.GlobalLabels.LabelNames()
-	labels = append(labels, m.Definition.Labels...)
 	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    m.Definition.Name,
+		Name:    m.Definition.FullName(),
 		Help:    m.Definition.Help,
 		Buckets: m.Definition.Buckets,
-	}, labels)
+	}, m.Definition.LabelNames())
 	return v
 }
 
@@ -42,15 +39,15 @@ func (m *Histogram) reregister() error {
 func (m *Histogram) Materialize(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
-		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
+		log.Error().Err(err).Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 	}
 	results, err := db.Materialize(conn, m.Definition.Sql)
 	if err != nil {
-		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
+		log.Error().Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 		return err
 	}
 	for _, r := range results {
-		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
+		l := labels.Merge(r.StringifiedLabels(), m.Definition.Metadata.Labels)
 		m.Collector.With(map[string]string(l)).Observe(r.Value)
 	}
 	return nil
@@ -58,8 +55,7 @@ func (m *Histogram) Materialize(conn *sql.Conn) error {
 
 func NewHistogram(definition MetricDefinition) Histogram {
 	metric := Histogram{
-		Definition:   definition,
-		GlobalLabels: definition.MetricLabels(),
+		Definition: definition,
 	}
 	err := metric.register()
 	if err != nil {
