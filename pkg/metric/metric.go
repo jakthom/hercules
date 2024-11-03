@@ -1,9 +1,11 @@
-package metrics
+package metric
 
 import (
 	"database/sql"
+	"strings"
 
 	"github.com/jakthom/hercules/pkg/db"
+	"github.com/jakthom/hercules/pkg/labels"
 )
 
 type MetricDefinition struct {
@@ -15,6 +17,16 @@ type MetricDefinition struct {
 	Labels      []string  `json:"labels"`
 	Buckets     []float64 `json:"buckets"`    // If the metric is a histogram
 	Objectives  []float64 `json:"objectives"` // If the metric is a summary
+	// Internal
+	MetricPrefix string `json:"metric_prefix"`
+}
+
+func (m *MetricDefinition) MetricLabels() labels.Labels {
+	return labels.Labels{}
+}
+
+func (m *MetricDefinition) Prefix() string {
+	return string(m.MetricPrefix) + string(strings.ReplaceAll(string(m.PackageName), "-", "_")) + "_"
 }
 
 type MetricDefinitions struct {

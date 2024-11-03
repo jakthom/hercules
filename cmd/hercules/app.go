@@ -15,7 +15,6 @@ import (
 	herculespackage "github.com/jakthom/hercules/pkg/herculesPackage"
 	registry "github.com/jakthom/hercules/pkg/metricRegistry"
 	"github.com/jakthom/hercules/pkg/middleware"
-	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -87,15 +86,10 @@ func (d *Hercules) initializePackages() {
 func (d *Hercules) initializeRegistries() {
 	// Register a registry for each package
 	for _, pkg := range d.packages {
-		metricMetadata := herculestypes.MetricMetadata{
-			PackageName:  pkg.Name,
-			MetricPrefix: pkg.MetricPrefix,
-			Labels:       d.config.InstanceLabels(),
-		}
 		if d.metricRegistries == nil {
-			d.metricRegistries = []*registry.MetricRegistry{registry.NewMetricRegistry(pkg.Metrics, metricMetadata)}
+			d.metricRegistries = []*registry.MetricRegistry{registry.NewMetricRegistry(pkg.Metrics)}
 		} else {
-			d.metricRegistries = append(d.metricRegistries, registry.NewMetricRegistry(pkg.Metrics, metricMetadata))
+			d.metricRegistries = append(d.metricRegistries, registry.NewMetricRegistry(pkg.Metrics))
 		}
 	}
 }

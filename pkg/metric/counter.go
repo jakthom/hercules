@@ -1,50 +1,44 @@
-package metrics
+package metric
 
 import (
 	"database/sql"
 
 	db "github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/labels"
-	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
 
-type Summary struct {
+type Counter struct {
 	Definition   MetricDefinition
 	GlobalLabels labels.Labels
-	Collector    *prometheus.SummaryVec
+	Collector    *prometheus.CounterVec
 }
 
-func (m *Summary) AsVec() *prometheus.SummaryVec {
-	objectives := make(map[float64]float64)
-	for _, o := range m.Definition.Objectives {
-		objectives[o] = o
-	}
+func (m *Counter) AsVec() *prometheus.CounterVec {
 	var labels = m.GlobalLabels.LabelNames()
 	labels = append(labels, m.Definition.Labels...)
-	v := prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Name:       m.Definition.Name,
-		Help:       m.Definition.Help,
-		Objectives: objectives,
+	v := prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: m.Definition.Name,
+		Help: m.Definition.Help,
 	}, labels)
 	return v
 }
 
-func (m *Summary) register() error {
+func (m *Counter) register() error {
 	collector := m.AsVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
 }
 
-func (m *Summary) reregister() error {
+func (m *Counter) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(m.Collector)
 	return m.register()
 }
 
-func (m *Summary) Materialize(conn *sql.Conn) error {
+func (m *Counter) Materialize(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
@@ -56,17 +50,15 @@ func (m *Summary) Materialize(conn *sql.Conn) error {
 	}
 	for _, r := range results {
 		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
-		m.Collector.With(map[string]string(l)).Observe(r.Value)
+		m.Collector.With(map[string]string(l)).Inc()
 	}
 	return nil
 }
 
-func NewSummary(definition MetricDefinition, meta herculestypes.MetricMetadata) Summary {
-	// TODO! Turn this into a generic function instead of copy/pasta
-	definition.Name = meta.Prefix() + definition.Name
-	metric := Summary{
+func NewCounter(definition MetricDefinition) Counter {
+	metric := Counter{
 		Definition:   definition,
-		GlobalLabels: meta.Labels,
+		GlobalLabels: definition.MetricLabels(),
 	}
 	err := metric.register()
 	if err != nil {

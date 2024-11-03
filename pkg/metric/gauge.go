@@ -1,50 +1,54 @@
-package metrics
+package metric
 
 import (
 	"database/sql"
 
 	db "github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/labels"
-	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
 
-type Histogram struct {
+type Gauge struct {
 	Definition   MetricDefinition
 	GlobalLabels labels.Labels
-	Collector    *prometheus.HistogramVec
+	Collector    *prometheus.GaugeVec
 }
 
-func (m *Histogram) AsVec() *prometheus.HistogramVec {
+func (m *Gauge) asVec() *prometheus.GaugeVec {
+	// TODO -> Combine definition labels and global labels
 	var labels = m.GlobalLabels.LabelNames()
 	labels = append(labels, m.Definition.Labels...)
-	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    m.Definition.Name,
-		Help:    m.Definition.Help,
-		Buckets: m.Definition.Buckets,
+	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: m.Definition.Name,
+		Help: m.Definition.Help,
 	}, labels)
 	return v
 }
 
-func (m *Histogram) register() error {
-	collector := m.AsVec()
+func (m *Gauge) register() error {
+	collector := m.asVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
 }
 
-func (m *Histogram) reregister() error {
+func (m *Gauge) reregister() error {
 	// godd this is ugly, but it's the only way I've found to make a collector go back to zero (so data isn't dup'd per request)
 	prometheus.Unregister(m.Collector)
 	return m.register()
 }
 
-func (m *Histogram) Materialize(conn *sql.Conn) error {
+func (m *Gauge) Initialize() {
+
+}
+
+func (m *Gauge) Materialize(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
 	}
+
 	results, err := db.Materialize(conn, m.Definition.Sql)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
@@ -52,17 +56,16 @@ func (m *Histogram) Materialize(conn *sql.Conn) error {
 	}
 	for _, r := range results {
 		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
-		m.Collector.With(map[string]string(l)).Observe(r.Value)
+		m.Collector.With(map[string]string(l)).Set(r.Value)
 	}
 	return nil
 }
 
-func NewHistogram(definition MetricDefinition, meta herculestypes.MetricMetadata) Histogram {
+func NewGauge(definition MetricDefinition) Gauge {
 	// TODO! Turn this into a generic function instead of copy/pasta
-	definition.Name = meta.Prefix() + definition.Name
-	metric := Histogram{
+	metric := Gauge{
 		Definition:   definition,
-		GlobalLabels: meta.Labels,
+		GlobalLabels: definition.MetricLabels(),
 	}
 	err := metric.register()
 	if err != nil {

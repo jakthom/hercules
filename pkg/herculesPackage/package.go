@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/jakthom/hercules/pkg/db"
-	"github.com/jakthom/hercules/pkg/metrics"
+	"github.com/jakthom/hercules/pkg/metric"
 	"github.com/jakthom/hercules/pkg/source"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
@@ -20,14 +20,14 @@ type HerculesPackageVariables map[string]interface{}
 // It can be downloaded from remote sources or shipped alongside hercules.
 
 type Package struct {
-	Name         herculestypes.PackageName  `json:"name"`
-	Version      string                     `json:"version"`
-	Variables    HerculesPackageVariables   `json:"variables"`
-	MetricPrefix herculestypes.MetricPrefix `json:"metricPrefix"`
-	Extensions   db.Extensions              `json:"extensions"`
-	Macros       []db.Macro                 `json:"macros"`
-	Sources      []source.Source            `json:"sources"`
-	Metrics      metrics.MetricDefinitions  `json:"metrics"`
+	Name         herculestypes.PackageName `json:"name"`
+	Version      string                    `json:"version"`
+	Variables    HerculesPackageVariables  `json:"variables"`
+	MetricPrefix string                    `json:"metricPrefix"`
+	Extensions   db.Extensions             `json:"extensions"`
+	Macros       []db.Macro                `json:"macros"`
+	Sources      []source.Source           `json:"sources"`
+	Metrics      metric.MetricDefinitions  `json:"metrics"`
 	// TODO -> Package-level secrets
 }
 
@@ -51,9 +51,9 @@ func (p *Package) InitializeWithConnection(conn *sql.Conn) error {
 }
 
 type PackageConfig struct {
-	Package      string                     `json:"package"`
-	Variables    HerculesPackageVariables   `json:"variables"`
-	MetricPrefix herculestypes.MetricPrefix `json:"metricPrefix"`
+	Package      string                   `json:"package"`
+	Variables    HerculesPackageVariables `json:"variables"`
+	MetricPrefix string                   `json:"metricPrefix"`
 }
 
 func (p *PackageConfig) getFromFile() (Package, error) {
