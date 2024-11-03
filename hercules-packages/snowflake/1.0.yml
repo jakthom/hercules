@@ -31,58 +31,36 @@ metrics:
       help: Queries executed and their associated status by user and warehouse
       enabled: true
       sql: from snowflake_query_history select user_name as user, warehouse_name as warehouse, lower(execution_status) as status, count(*) as val group by all;
-      labels:
-        - user
-        - warehouse
-        - status
 
     - name: queries_this_week_total
       help: Queries this week total, by user and warehouse
       enabled: true
       sql: select user_name as user, warehouse_name as warehouse, count(*) as v from snowflake_query_history group by all;
-      labels:
-        - user
-        - warehouse
 
     - name: avg_query_duration_seconds
       help: The average query duration for a particular user, using a particular warehouse
       enabled: true
       sql: select user_name as user, warehouse_name as warehouse, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by all;
-      labels:
-        - user
-        - warehouse
 
     - name: table_operations_count
       help: The number of operations on each table over the last week
       enabled: true
       sql: select user_name as user, query_type as query_type, count(*) as value from snowflake_query_history group by all;
-      labels:
-        - user
-        - query_type
 
     - name: avg_virtual_warehouse_spill_to_local_storage_bytes
       help: The average bytes spilled to disk for queries on a specific warehouse
       enabled: true
       sql: select user_name as user, warehouse_name as warehouse, avg(BYTES_SPILLED_TO_LOCAL_STORAGE) as value from snowflake_query_history group by all;
-      labels:
-        - user
-        - warehouse
 
     - name: avg_virtual_warehouse_spill_to_remote_storage_bytes
       help: The average bytes spilled to remote disk for queries on a specific warehouse
       enabled: true
       sql: select user_name as user, warehouse_name as warehouse, avg(BYTES_SPILLED_TO_REMOTE_STORAGE) as value from snowflake_query_history group by all;
-      labels:
-        - user
-        - warehouse
 
   histogram:
     - name: query_duration_seconds
       help: Histogram of query duration seconds
       sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse
       buckets:
         - 0.1
         - 0.5
@@ -107,9 +85,6 @@ metrics:
     - name: virtual_warehouse_query_duration_seconds
       help: Summary of query duration seconds
       sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse
       objectives:
         - 0.001
         - 0.05
@@ -122,6 +97,3 @@ metrics:
     - name: queries_executed_count
       help: The count of queries executed by user and warehouse
       sql: select user_name as user, warehouse_name as warehouse, 1 as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse

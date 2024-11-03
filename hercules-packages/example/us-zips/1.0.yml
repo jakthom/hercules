@@ -13,5 +13,3 @@ metrics:
     - name: zip_codes_total
       help: The number of US zip codes
       sql: select state, count(*) as value from united_states_zip_codes group by 1;
-      labels:
-        - state
