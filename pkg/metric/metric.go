@@ -28,6 +28,11 @@ func (m *MetricDefinition) LabelNames() []string {
 	return names
 }
 
+func (m *MetricDefinition) injectLabels(conn *sql.Conn) {
+	labels := db.GetLabelNamesFromQuery(conn, m.Sql)
+	m.Labels = labels
+}
+
 func (m *MetricDefinition) injectMetadata(metadata Metadata) {
 	m.Metadata = metadata
 }
@@ -44,17 +49,21 @@ type MetricDefinitions struct {
 	Histogram []*MetricDefinition `json:"histogram"`
 }
 
-func (m *MetricDefinitions) InjectMetadata(metadata Metadata) {
+func (m *MetricDefinitions) InjectMetadata(conn *sql.Conn, metadata Metadata) {
 	for _, metricDefinition := range m.Gauge {
+		metricDefinition.injectLabels(conn)
 		metricDefinition.injectMetadata(metadata)
 	}
 	for _, metricDefinition := range m.Counter {
+		metricDefinition.injectLabels(conn)
 		metricDefinition.injectMetadata(metadata)
 	}
 	for _, metricDefinition := range m.Summary {
+		metricDefinition.injectLabels(conn)
 		metricDefinition.injectMetadata(metadata)
 	}
 	for _, metricDefinition := range m.Histogram {
+		metricDefinition.injectLabels(conn)
 		metricDefinition.injectMetadata(metadata)
 	}
 }

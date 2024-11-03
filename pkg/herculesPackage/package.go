@@ -42,7 +42,7 @@ func (p *Package) InitializeWithConnection(conn *sql.Conn) error {
 		// Ensure sources
 		err := source.InitializeSourcesWithConnection(p.Sources, conn)
 		// Inject metadata to all metrics
-		p.Metrics.InjectMetadata(p.Metadata)
+		p.Metrics.InjectMetadata(conn, p.Metadata)
 		if err != nil {
 			log.Fatal().Interface("package", p.Name).Msg("could not initialize package sources")
 		}

@@ -14,16 +14,12 @@ metrics:
       help: Total NYC fares for the month of July by pickup location
       enabled: True
       sql: select PULocationID as pickupLocation, sum(fare_amount) as value from nyc_yellow_taxi_june_2024 group by all
-      labels:
-        - pickupLocation
 
   summary:
     - name: pickup_location_fares # Note this uses prometheus to do the histogram calculation. For better performance histograms can be pre-calculated and represented as a gauge.
       help: Total NYC fares for the month of July by pickup location
       enabled: True
       sql: select PULocationID as pickupLocation, fare_amount as value from nyc_yellow_taxi_june_2024
-      labels:
-        - pickupLocation
       objectives:
         - 0.001
         - 0.05

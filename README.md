@@ -93,9 +93,6 @@ metrics:
       help: Queries this week total by user and warehouse
       enabled: true
       sql: select user_name as user, warehouse_name as warehouse, count(*) as value from snowflake_query_history group by all;
-      labels:
-        - user
-        - warehouse
 ```
 
 
@@ -106,9 +103,6 @@ metrics:
     - name: query_duration_seconds
       help: Histogram of query duration seconds
       sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse
       buckets:
         - 0.1
         - 0.5
@@ -126,9 +120,6 @@ metrics:
     - name: virtual_warehouse_query_duration_seconds
       help: Summary of query duration seconds
       sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse
       objectives:
         - 0.001
         - 0.05
@@ -146,9 +137,6 @@ metrics:
     - name: queries_executed_count
       help: The count of queries executed by user and warehouse
       sql: select user_name as user, warehouse_name as warehouse, 1 as value from snowflake_query_history;
-      labels:
-        - user
-        - warehouse
 ```
 
 
