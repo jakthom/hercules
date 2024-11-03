@@ -5,9 +5,9 @@ import (
 
 	"github.com/jakthom/hercules/pkg/db"
 	herculespackage "github.com/jakthom/hercules/pkg/herculesPackage"
+	"github.com/jakthom/hercules/pkg/metric"
 
 	"github.com/jakthom/hercules/pkg/labels"
-	"github.com/jakthom/hercules/pkg/metrics"
 	"github.com/jakthom/hercules/pkg/source"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -38,7 +38,7 @@ type Config struct {
 	Extensions   db.Extensions                   `json:"extensions"`
 	Macros       []db.Macro                      `json:"macros"`
 	Sources      []source.Source                 `json:"sources"`
-	Metrics      metrics.MetricDefinitions       `json:"metrics"`
+	Metrics      metric.MetricDefinitions        `json:"metrics"`
 }
 
 func (c *Config) InstanceLabels() labels.Labels {

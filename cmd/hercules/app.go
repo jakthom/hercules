@@ -13,9 +13,9 @@ import (
 	"github.com/jakthom/hercules/pkg/config"
 	"github.com/jakthom/hercules/pkg/flock"
 	herculespackage "github.com/jakthom/hercules/pkg/herculesPackage"
+	"github.com/jakthom/hercules/pkg/metric"
 	registry "github.com/jakthom/hercules/pkg/metricRegistry"
 	"github.com/jakthom/hercules/pkg/middleware"
-	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -57,6 +57,11 @@ func (d *Hercules) loadPackages() {
 	pkgs := []herculespackage.Package{}
 	for _, pkgConfig := range d.config.Packages {
 		pkg, err := pkgConfig.GetPackage()
+		pkg.Metadata = metric.Metadata{
+			PackageName: string(pkg.Name),
+			Prefix:      pkgConfig.MetricPrefix,
+			Labels:      d.config.InstanceLabels(),
+		}
 		if err != nil {
 			log.Error().Err(err).Msg("could not get package")
 		}
@@ -70,6 +75,10 @@ func (d *Hercules) loadPackages() {
 		Macros:     d.config.Macros,
 		Sources:    d.config.Sources,
 		Metrics:    d.config.Metrics,
+		Metadata: metric.Metadata{
+			PackageName: "core",
+			Labels:      d.config.InstanceLabels(),
+		},
 	})
 	d.packages = pkgs
 
@@ -87,15 +96,10 @@ func (d *Hercules) initializePackages() {
 func (d *Hercules) initializeRegistries() {
 	// Register a registry for each package
 	for _, pkg := range d.packages {
-		metricMetadata := herculestypes.MetricMetadata{
-			PackageName:  pkg.Name,
-			MetricPrefix: pkg.MetricPrefix,
-			Labels:       d.config.InstanceLabels(),
-		}
 		if d.metricRegistries == nil {
-			d.metricRegistries = []*registry.MetricRegistry{registry.NewMetricRegistry(pkg.Metrics, metricMetadata)}
+			d.metricRegistries = []*registry.MetricRegistry{registry.NewMetricRegistry(pkg.Metrics)}
 		} else {
-			d.metricRegistries = append(d.metricRegistries, registry.NewMetricRegistry(pkg.Metrics, metricMetadata))
+			d.metricRegistries = append(d.metricRegistries, registry.NewMetricRegistry(pkg.Metrics))
 		}
 	}
 }

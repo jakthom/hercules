@@ -3,3 +3,4 @@
 .tmp/*
 scratch/*
 testprofile.out
+.DS_Store

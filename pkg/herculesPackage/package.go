@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/jakthom/hercules/pkg/db"
-	"github.com/jakthom/hercules/pkg/metrics"
+	"github.com/jakthom/hercules/pkg/metric"
 	"github.com/jakthom/hercules/pkg/source"
 	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/rs/zerolog/log"
@@ -23,11 +23,12 @@ type Package struct {
 	Name         herculestypes.PackageName  `json:"name"`
 	Version      string                     `json:"version"`
 	Variables    HerculesPackageVariables   `json:"variables"`
-	MetricPrefix herculestypes.MetricPrefix `json:"metricPrefix"`
 	Extensions   db.Extensions              `json:"extensions"`
 	Macros       []db.Macro                 `json:"macros"`
 	Sources      []source.Source            `json:"sources"`
-	Metrics      metrics.MetricDefinitions  `json:"metrics"`
+	Metrics      metric.MetricDefinitions   `json:"metrics"`
+	MetricPrefix herculestypes.MetricPrefix `json:"-"`
+	Metadata     metric.Metadata            `json:"metadata"`
 	// TODO -> Package-level secrets
 }
 
@@ -40,6 +41,8 @@ func (p *Package) InitializeWithConnection(conn *sql.Conn) error {
 		db.EnsureMacrosWithConnection(p.Macros, conn)
 		// Ensure sources
 		err := source.InitializeSourcesWithConnection(p.Sources, conn)
+		// Inject metadata to all metrics
+		p.Metrics.InjectMetadata(p.Metadata)
 		if err != nil {
 			log.Fatal().Interface("package", p.Name).Msg("could not initialize package sources")
 		}
@@ -64,6 +67,7 @@ func (p *PackageConfig) getFromFile() (Package, error) {
 		log.Error().Err(err).Msg("could not get package from file " + p.Package)
 	}
 	err = yaml.Unmarshal(yamlFile, &pkg)
+	pkg.MetricPrefix = p.MetricPrefix
 	return pkg, err
 }
 
@@ -107,6 +111,5 @@ func (p *PackageConfig) GetPackage() (Package, error) {
 		return Package{}, err
 	}
 	pkg.Variables = p.Variables
-	pkg.MetricPrefix = p.MetricPrefix
 	return pkg, nil
 }

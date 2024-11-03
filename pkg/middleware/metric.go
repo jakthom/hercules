@@ -13,7 +13,7 @@ func MetricsMiddleware(conn *sql.Conn, registries []*registry.MetricRegistry, ne
 		for _, registry := range registries {
 			err := registry.Materialize(conn)
 			if err != nil {
-				log.Debug().Interface("packageName", registry.PackageName).Msg("could not materialize registry")
+				log.Debug().Msg("could not materialize registry")
 			}
 		}
 		next.ServeHTTP(w, r)

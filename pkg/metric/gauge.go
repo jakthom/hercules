@@ -1,34 +1,29 @@
-package metrics
+package metric
 
 import (
 	"database/sql"
 
 	db "github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/labels"
-	herculestypes "github.com/jakthom/hercules/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
 
 type Gauge struct {
-	Definition   MetricDefinition
-	GlobalLabels labels.Labels
-	Collector    *prometheus.GaugeVec
+	Definition MetricDefinition
+	Collector  *prometheus.GaugeVec
 }
 
-func (m *Gauge) AsVec() *prometheus.GaugeVec {
-	// TODO -> Combine definition labels and global labels
-	var labels = m.GlobalLabels.LabelNames()
-	labels = append(labels, m.Definition.Labels...)
+func (m *Gauge) asVec() *prometheus.GaugeVec {
 	v := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: m.Definition.Name,
+		Name: m.Definition.FullName(),
 		Help: m.Definition.Help,
-	}, labels)
+	}, m.Definition.LabelNames())
 	return v
 }
 
 func (m *Gauge) register() error {
-	collector := m.AsVec()
+	collector := m.asVec()
 	err := prometheus.Register(collector)
 	m.Collector = collector
 	return err
@@ -43,31 +38,29 @@ func (m *Gauge) reregister() error {
 func (m *Gauge) Materialize(conn *sql.Conn) error {
 	err := m.reregister()
 	if err != nil {
-		log.Error().Err(err).Interface("metric", m.Definition.Name).Msg("could not materialize metric")
+		log.Error().Err(err).Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 	}
 
 	results, err := db.Materialize(conn, m.Definition.Sql)
 	if err != nil {
-		log.Error().Interface("metric", m.Definition.Name).Msg("could not materialize metric")
+		log.Error().Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 		return err
 	}
 	for _, r := range results {
-		l := labels.Merge(r.StringifiedLabels(), m.GlobalLabels)
+		l := labels.Merge(r.StringifiedLabels(), m.Definition.Metadata.Labels)
 		m.Collector.With(map[string]string(l)).Set(r.Value)
 	}
 	return nil
 }
 
-func NewGauge(definition MetricDefinition, meta herculestypes.MetricMetadata) Gauge {
+func NewGauge(definition MetricDefinition) Gauge {
 	// TODO! Turn this into a generic function instead of copy/pasta
-	definition.Name = meta.Prefix() + definition.Name
 	metric := Gauge{
-		Definition:   definition,
-		GlobalLabels: meta.Labels,
+		Definition: definition,
 	}
 	err := metric.register()
 	if err != nil {
-		log.Error().Err(err).Interface("metric", definition.Name).Msg("could not register metric")
+		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
 	}
 	return metric
 }
