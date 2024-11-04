@@ -5,14 +5,7 @@ debug: false
 port: 9100
 
 globalLabels:
-  - cell: ausw1 # Inject prometheus labels from config
   - env: $ENV # Inject prometheus labels from env var
 
 packages:
-  - package: hercules-packages/snowflake/1.0.yml # Source local metrics package
-    variables:
-      yo: yee # Inject these variables to the package definition
-    metricPrefix: skt_ # Prefix all metrics with this
-  - package: hercules-packages/example/us-zips/1.0.yml
-    metricPrefix: spb_
-  # - package: hercules-packages/example/nyc-taxi/1.0.yml
+  - package: hercules-packages/bluesky/1.0.yaml
