@@ -1,0 +1,52 @@
+name: bluesky-duckdb
+version: 1.0
+
+sources:
+  - name: profile
+    type: sql
+    source: select * from read_json_auto('https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=duckdb.org');
+    materialize: true
+    refreshIntervalSeconds: 60
+
+  - name: posts
+    type: sql
+    source: select post.* from (select unnest(feed).post as post from (select * from read_json_auto('https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=did:plc:id67xmpji7oysb7vitsodr4v')));
+    materialize: true
+    refreshIntervalSeconds: 60
+
+metrics:
+  gauge:
+    - name: followers_total
+      help: The number of total accounts following DuckDB
+      enabled: true
+      sql: select followersCount::float as val from profile
+
+    - name: follows_total
+      help: The number of total accounts the DuckDB bluesky account follows
+      enabled: true
+      sql: select followsCount::float as val from profile
+
+    - name: posts_total
+      help: The number of total DuckDB-authored Bluesky posts
+      enabled: true
+      sql: select postsCount::float as val from profile
+
+    - name: reply_count
+      help: The number of total replies to DuckDB Bluesky posts
+      enabled: true
+      sql: select sum(replyCount)::float as val from posts
+
+    - name: repost_count
+      help: The number of total reposts to DuckDB Bluesky posts
+      enabled: true
+      sql: select sum(repostCount)::float as val from posts
+
+    - name: like_count
+      help: The number of total likes to DuckDB Bluesky posts
+      enabled: true
+      sql: select sum(likeCount)::float as val from posts
+
+    - name: quote_count
+      help: The number of total quoted DuckDB Bluesky posts
+      enabled: true
+      sql: select sum(quoteCount)::float as val from posts
