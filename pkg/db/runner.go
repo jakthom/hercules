@@ -3,23 +3,38 @@ package db
 import (
 	"context"
 	"database/sql"
-	"strconv"
+	"math/big"
+	"strings"
 
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cast"
 )
 
 type QueryResult struct {
 	Value  float64
-	Labels map[string]interface{}
+	Labels map[string]string
+}
+
+func toFloat64(v interface{}) float64 {
+	switch v := v.(type) {
+	case *big.Int:
+		val, _ := v.Float64()
+		return val
+	case *big.Float:
+		val, _ := v.Float64()
+		return val
+	default:
+		return cast.ToFloat64(v)
+	}
+}
+func isFunctionColumn(column string) bool {
+	return strings.Contains(column, "(") && strings.Contains(column, ")")
 }
 
 func (qr *QueryResult) StringifiedLabels() map[string]string {
 	r := make(map[string]string)
 	for k, v := range qr.Labels {
-		if v == nil {
-			v = "null"
-		}
-		r[k] = v.(string)
+		r[k] = v
 	}
 	return r
 }
@@ -36,28 +51,32 @@ func RunSqlQuery(conn *sql.Conn, query Sql) (*sql.Rows, error) {
 func Materialize(conn *sql.Conn, query Sql) ([]QueryResult, error) {
 	rows, _ := RunSqlQuery(conn, query)
 	var queryResults []QueryResult
+	// Get column names and column count from query results
 	columns, _ := rows.Columns()
+	columnCount := len(columns)
+	// Initialize values as interface{} pointers
+	vals := make([]interface{}, columnCount)
+	for i := range columns {
+		var ii interface{}
+		vals[i] = &ii
+	}
+
 	for rows.Next() {
 		queryResult := QueryResult{}
-
-		queryResult.Labels = make(map[string]interface{})
-		results := make([]interface{}, len(columns))
-		for i := range results {
-			results[i] = new(sql.RawBytes)
-		}
-		if err := rows.Scan(results...); err != nil {
+		queryResult.Labels = make(map[string]string)
+		if err := rows.Scan(vals...); err != nil {
 			log.Error().Err(err).Msg("could not scan row")
 		}
-		for i, v := range results {
-			if sb, ok := v.(*sql.RawBytes); ok {
-				if columns[i] == "value" || columns[i] == "val" || columns[i] == "v" {
-					queryResult.Value, _ = strconv.ParseFloat(string(*sb), 64)
-				} else {
-					queryResult.Labels[columns[i]] = string(*sb)
-				}
+		for i := range vals {
+			columnName := columns[i]
+			value := *(vals[i].(*interface{}))
+			if columnName == "value" || columnName == "val" || columnName == "v" || isFunctionColumn(columnName) {
+				queryResult.Value = toFloat64(value)
+			} else {
+				queryResult.Labels[columnName] = value.(string)
 			}
-			queryResults = append(queryResults, queryResult)
 		}
+		queryResults = append(queryResults, queryResult)
 	}
 	return queryResults, nil
 }

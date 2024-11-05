@@ -18,35 +18,36 @@ metrics:
   gauge:
     - name: followers_total
       help: The number of total accounts following DuckDB
-      enabled: true
-      sql: select followersCount::float as val from profile
+      sql: select followersCount as val from profile;
 
     - name: follows_total
       help: The number of total accounts the DuckDB bluesky account follows
-      enabled: true
-      sql: select followsCount::float as val from profile
+      sql: select followsCount as val from profile;
 
     - name: posts_total
       help: The number of total DuckDB-authored Bluesky posts
-      enabled: true
-      sql: select postsCount::float as val from profile
+      sql: select postsCount as val from profile;
 
     - name: reply_count
       help: The number of total replies to DuckDB Bluesky posts
-      enabled: true
-      sql: select sum(replyCount)::float as val from posts
+      sql: select sum(replyCount) from posts;
 
     - name: repost_count
       help: The number of total reposts to DuckDB Bluesky posts
-      enabled: true
-      sql: select sum(repostCount)::float as val from posts
+      sql: select sum(repostCount) from posts;
 
     - name: like_count
       help: The number of total likes to DuckDB Bluesky posts
-      enabled: true
-      sql: select sum(likeCount)::float as val from posts
+      sql: select sum(likeCount) from posts;
 
     - name: quote_count
       help: The number of total quoted DuckDB Bluesky posts
-      enabled: true
-      sql: select sum(quoteCount)::float as val from posts
+      sql: select sum(quoteCount) from posts;
+
+    - name: author_posts_count
+      help: The number of posts on the DuckDB Bluesky account by author
+      sql: select author.handle, count(*) from posts group by 1;
+
+    - name: author_likes_count
+      help: The number of likes on the DuckDB Bluesky posts by author
+      sql: select author.handle, sum(likeCount) from posts group by 1;
