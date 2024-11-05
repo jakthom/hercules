@@ -16,12 +16,16 @@ sources:
 
 metrics:
   gauge:
+    - name: associated_starter_packs_total
+      help: The number of starter packs the DuckDB Bluesky account is associated with
+      sql: select associated.starterPacks as val from profile;
+
     - name: followers_total
       help: The number of total accounts following DuckDB
       sql: select followersCount as val from profile;
 
     - name: follows_total
-      help: The number of total accounts the DuckDB bluesky account follows
+      help: The number of total accounts the DuckDB Bluesky account follows
       sql: select followsCount as val from profile;
 
     - name: posts_total
@@ -49,5 +53,22 @@ metrics:
       sql: select author.handle, count(*) from posts group by 1;
 
     - name: author_likes_count
-      help: The number of likes on the DuckDB Bluesky posts by author
+      help: The number of likes on DuckDB Bluesky posts by author
       sql: select author.handle, sum(likeCount) from posts group by 1;
+
+  summary:
+    - name: author_post_likes_count
+      help: Quantiles of likes on DuckDB Bluesky posts by author
+      sql: select author.handle, likeCount as val from posts;
+      objectives:
+        - 0.5
+        - 0.9
+        - 0.99
+
+    - name: author_post_repost_count
+      help: Quantiles of reposts on DuckDB Bluesky posts by author
+      sql: select author.handle, repostCount as val from posts;
+      objectives:
+        - 0.5
+        - 0.9
+        - 0.99
