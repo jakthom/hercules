@@ -23,12 +23,16 @@
 
 # Getting Started
 
+## In a Codespace
 
-### Prerequisites
+[![Launch GitHub Codespace](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=873715049)
+
+
+## Locally
 
 You'll need `go >=1.23` on your machine.
 
-### Clone and Run Hercules Locally
+### Clone and Run Hercules
 
 ```
 git clone git@github.com:jakthom/hercules.git && cd hercules
