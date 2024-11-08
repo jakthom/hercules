@@ -28,7 +28,7 @@ Launching Hercules in a Codespace is the easiest way to get started.
 
 # Sources
 
-Hercules materializes Prometheus metrics by querying:
+Hercules generates Prometheus metrics by querying:
 
 - **Local files** (parquet, json, csv, xlsx, etc)
 - **Object storage** (GCS, S3, Azure Blob)
@@ -54,7 +54,7 @@ Hercules supports Prometheus **gauges, counters, summaries, and histograms.**
 
 ### Enrichment
 
-Sources and  can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), ***properly-labeled*** metrics.
+Sources and metrics can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), ***properly-labeled*** metrics.
 
 Integrate, calculate, enrich, and label on the edge.
 
@@ -64,14 +64,13 @@ Integrate, calculate, enrich, and label on the edge.
 
 Metric definitions can be kept DRY using SQL macros.
 
-Macros are useful for operations like:
+Macros are useful for:
 
 - Parsing log lines
 - Reading useragent strings
 - Schematizing unstructured data
 - Enriching results with third-party tooling
 - Tokenizing attributes
-
 
 
 #  Labels
@@ -85,8 +84,7 @@ Labels are propagated from configuration or sourced from environment variables.
 
 Hercules extensions, sources, metrics, and macros can be logically grouped and distributed by the use of **packages**.
 
-Starter packages can be found in the [hercules-packages](/hercules-packages/) directory.
-
+Examples can be found in the [hercules-packages](/hercules-packages/) directory.
 
 
 # Bonus
