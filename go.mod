@@ -1,12 +1,13 @@
 module github.com/jakthom/hercules
 
-go 1.22.1
+go 1.23
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/marcboeker/go-duckdb v1.8.2
 	github.com/prometheus/client_golang v1.20.4
 	github.com/rs/zerolog v1.33.0
+	github.com/spf13/cast v1.7.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	sigs.k8s.io/yaml v1.4.0
@@ -38,7 +39,6 @@ require (
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
