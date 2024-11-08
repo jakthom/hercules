@@ -1,55 +1,35 @@
+<h1 align="center">
+  <img src="./assets/hercules.png" alt="Hercules" width="20%" style="border-radius: 25%">
+  <br>
+  Hercules
+  <br>
+</h1>
+
+<h4 align="center"> Write SQL. Get Prometheus Metrics.</h4>
+
+<div align="center">
+
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/jakthom/hercules)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![test](https://github.com/jakthom/hercules/actions/workflows/test.yml/badge.svg)](https://github.com/jakthom/hercules/actions/workflows/test.yml)
 [![lint](https://github.com/jakthom/hercules/actions/workflows/lint.yml/badge.svg)](https://github.com/jakthom/hercules/actions/workflows/lint.yml)
+</div>
 
-
-# Hercules
-
-
-<img src="assets/heracles.png" width="30%" align="right"/>
-
-
-### A Prometheus exporter that supercharges metrics.
-
-
-* **Write SQL, get metrics.**
-
-* **Query a pantheon of sources** - files, http endpoints, databases, data lakes, and more.
-
-* **Enrich metrics** by joining to external metadata.
-
-* **Tame massive datasets** using embedded OLAP
 
 
 # Getting Started
 
-## In a Codespace
+Launching Hercules in a Codespace is the easiest way to get started.
 
 [![Launch GitHub Codespace](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=873715049)
 
 
-## Locally
-
-You'll need `go >=1.23` on your machine.
-
-### Clone and Run Hercules
-
-```
-git clone git@github.com:jakthom/hercules.git && cd hercules
-
-make run
-```
-
-### Get Prometheus Metrics
-
-[localhost:9100/metrics](http://localhost:9100/metrics)
 
 
-# Features
+# Sources
 
-### Multi-Source
+Hercules generates Prometheus metrics by querying:
 
-Hercules materializes metrics from sources such as:
 - **Local files** (parquet, json, csv, xlsx, etc)
 - **Object storage** (GCS, S3, Azure Blob)
 - **HTTP endpoints**
@@ -58,115 +38,33 @@ Hercules materializes metrics from sources such as:
 - **Data warehouses** (BigQuery)
 - **Arrow IPC buffers**
 
+Sources can be cached and periodically refreshed, or act as views to the underlying data.
 
-Sources can be represented as `views` or `tables` depending on desired performance and specified latency requirements.
+Metrics from multiple sources can be materialized using a single exporter.
 
-**Example source definition:**
 
-```
-sources:
-  - name: nyc_yellow_taxi_june_2024
-    type: parquet
-    source: https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-07.parquet
-    materialize: true
-    refreshIntervalSeconds: 100
-```
+# Metrics
 
-### SQL-based Metric Definitions
+### Definition
 
 Metric definitions are `yml` and use `sql` in a number of supported dialects to aggregate, enrich, and materialize metric values.
 
-Metric materialization expects a single field in the resultset that correponds to the **metric value**. This field can be titled `value`, `val`, or simply `v`. All other fields are considered **metric labels**.
 
-#### Prometheus Metric Types
+Hercules supports Prometheus **gauges, counters, summaries, and histograms.**
 
-Hercules supports the following metric types:
+### Enrichment
 
-- Gauge metrics ✅
-- Counter metrics ✅
-- Summary metrics ✅
-- Histogram metrics ✅
-
-
-**Example Gauge Metric Definition:**
-
-```
-metrics:
-  gauge:
-    - name: queries_this_week_total
-      help: Queries this week total by user and warehouse
-      enabled: true
-      sql: select user_name as user, warehouse_name as warehouse, count(*) as value from snowflake_query_history group by all;
-```
-
-
-**Example Histogram Metric Definition:**
-```
-metrics:
-  histogram:
-    - name: query_duration_seconds
-      help: Histogram of query duration seconds
-      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
-      buckets:
-        - 0.1
-        - 0.5
-        - 1
-        - 2
-        - 4
-        - 8
-        - 16
-```
-
-
-**Example Summary Metric Definition:**
-```
-  summary:
-    - name: virtual_warehouse_query_duration_seconds
-      help: Summary of query duration seconds
-      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
-      objectives:
-        - 0.001
-        - 0.05
-        - 0.01
-        - 0.5
-        - 0.9
-        - 0.99
-
-```
-
-
-**Example Counter Metric Definition:**
-```
-  counter:
-    - name: queries_executed_count
-      help: The count of queries executed by user and warehouse
-      sql: select user_name as user, warehouse_name as warehouse, 1 as value from snowflake_query_history;
-```
-
-
-### Enrich Metrics
-
-Hercules **sources** and **metrics** can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), ***properly-labeled*** metrics.
+Sources and metrics can be *externally enriched*, leading to more ***thorough***, ***accurate*** (or is it precise?), ***properly-labeled*** metrics.
 
 Integrate, calculate, enrich, and label on the edge.
 
-**Example Enriched Source:**
-
-```
-sources:
-  - name: user_signups
-    type: sql
-    source: select s.timestamp, s.userId, u.name from signups s join users u on s.userId = u.id
-    materialize: true
-    refreshIntervalSeconds: 5
-```
 
 
-### DRY Metric Definitions
+# Macros
 
-Metric definitions can be kept DRY using Hercules macros.
+Metric definitions can be kept DRY using SQL macros.
 
-Macros are automatically ensured on startup and are useful for common activities such as:
+Macros are useful for:
 
 - Parsing log lines
 - Reading useragent strings
@@ -175,51 +73,21 @@ Macros are automatically ensured on startup and are useful for common activities
 - Tokenizing attributes
 
 
-**Example Macro Definition:**
+#  Labels
 
-```
-macros:
-  - sql: create or replace macro parse_tomcat_log(logLine) AS ( $PARSING_LOGIC );
-```
+Hercules propagates global labels to all configured metrics. So you don't have to guess where a metric came from.
 
-
-### Global Labeling
-
-Hercules allows global labels to be propagated to all configured metrics. So you don't have to guess where a metric came from.
-
-Labels can also be propagated directly from environment variables.
-
-**Example label definition:**
-```
-globalLabels:
-  - cell: ausw1
-  - env: dev
-  - region: $REGION # Propagate the value of an environment variable titled `REGION` to prometheus labels
-```
-
-### Packages
-
-Hercules includes a yml-based package loader which means extensions, macros, sources, and metrics can be logically grouped and distributed.
-
-Starter packages can be found in the [hercules-packages](/hercules-packages/) directory.
-
-**Example package registration:**
-
-```
-packages:
-  - package: hercules-packages/snowflake/1.0.yml
-    variables:
-      yo: yee
-    metricPrefix: skt_
-```
+Labels are propagated from configuration or sourced from environment variables.
 
 
-### Embedded Analytics
+# Packages
 
-A byproduct of Hercules being ridiculously efficient and flexible is the capability to **materialize a lot more metrics, from a lot more sources, using a single Prometheus scrape endpoint.**
+Hercules extensions, sources, metrics, and macros can be logically grouped and distributed by the use of **packages**.
+
+Examples can be found in the [hercules-packages](/hercules-packages/) directory.
 
 
-### Other Hercules Niceties
+# Bonus
 
 - Calculate prometheus-compatible metrics from geospatial data
 - Coerce unwieldy files to useful statistics using full-text search
