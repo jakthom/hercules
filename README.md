@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="./assets/hercules.png" alt="Hercules" width="200">
+  <img src="./assets/hercules.png" alt="Hercules" width="50%" style="border-radius: 25%">
   <br>
   Hercules
   <br>
