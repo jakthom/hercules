@@ -1,3 +1,0 @@
-{
-    "postStartCommand": "CGO_ENABLED=1 ENV=$(whoami) go run -ldflags=\"-X 'main.VERSION=$(cat .VERSION)'\" ./cmd/hercules/"
-}
