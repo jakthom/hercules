@@ -1,0 +1,9 @@
+name: bluesky-databs
+version: 1.0
+
+sources:
+  - name: feed
+    type: sql
+    source: select post.* from (select p.post from (select unnest(feed) as p from read_json('https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed?feed=at://did:plc:lsa4xskoayjkcqyyq6t2o5eg/app.bsky.feed.generator/aaans52l2ufzc', timestampformat='%Y-%m-%dT%H:%M:%S.%gZ')));
+    materialize: true
+    refreshIntervalSeconds: 60
