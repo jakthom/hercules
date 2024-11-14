@@ -17,9 +17,11 @@
 
 
 
-# Getting Started
+# ⚡ Quickstart
 
 Launching Hercules in a Codespace is the easiest way to get started.
+
+A `make run` from inside your codespace will get things spinning.
 
 [![Launch GitHub Codespace](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=873715049)
 
