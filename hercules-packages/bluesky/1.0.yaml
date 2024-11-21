@@ -1,4 +1,4 @@
-name: bluesky-duckdb
+name: bluesky
 version: 1.0
 
 sources:
@@ -14,50 +14,81 @@ sources:
     materialize: true
     refreshIntervalSeconds: 60
 
+  - name: jetstream
+    type: sql
+    source: select * from read_parquet('https://hive.buz.dev/bluesky/jetstream/latest.parquet');
+    materialize: true
+    refreshIntervalSeconds: 600
+
+
 metrics:
   gauge:
-    - name: associated_starter_packs_total
+    # DuckDB
+    - name: duckdb_associated_starter_packs_total
       help: The number of starter packs the DuckDB Bluesky account is associated with
       sql: select associated.starterPacks as val from profile;
 
-    - name: followers_total
+    - name: duckdb_followers_total
       help: The number of total accounts following DuckDB
       sql: select followersCount as val from profile;
 
-    - name: follows_total
+    - name: duckdb_follows_total
       help: The number of total accounts the DuckDB Bluesky account follows
       sql: select followsCount as val from profile;
 
-    - name: posts_total
+    - name: duckdb_posts_total
       help: The number of total DuckDB-authored Bluesky posts
       sql: select postsCount as val from profile;
 
-    - name: reply_count
+    - name: duckdb_reply_count
       help: The number of total replies to DuckDB Bluesky posts
       sql: select sum(replyCount) from posts;
 
-    - name: repost_count
+    - name: duckdb_repost_count
       help: The number of total reposts to DuckDB Bluesky posts
       sql: select sum(repostCount) from posts;
 
-    - name: like_count
+    - name: duckdb_like_count
       help: The number of total likes to DuckDB Bluesky posts
       sql: select sum(likeCount) from posts;
 
-    - name: quote_count
+    - name: duckdb_quote_count
       help: The number of total quoted DuckDB Bluesky posts
       sql: select sum(quoteCount) from posts;
 
-    - name: author_posts_count
+    - name: duckdb_author_posts_count
       help: The number of posts on the DuckDB Bluesky account by author
       sql: select author.handle, count(*) from posts group by 1;
 
-    - name: author_likes_count
+    - name: duckdb_author_likes_count
       help: The number of likes on DuckDB Bluesky posts by author
       sql: select author.handle, sum(likeCount) from posts group by 1;
 
+    # Jetstream
+    
+    - name: jetstream_records_count
+      help: The total number of records in the Jetstream
+      sql: select count(*) from jetstream;
+
+    - name: jetstream_collection_count
+      help: Bluesky collection count, by collection name
+      sql: select coalesce(commit.collection, 'unknown') as collection, count(*) from jetstream group by 1;
+
+    - name: jetstream_top_10_accounts_by_new_follows_count
+      help: Top 10 Bluesky accounts by new follows
+      sql: select commit.record->>'subject' as did, count(*) from jetstream where commit.collection = 'app.bsky.graph.follow' and (commit.record->>'subject' is not null) group by 1 order by 2 desc limit 10;
+
+    - name: jetstream_top_10_posts_by_likes_count
+      help: Top 10 Bluesky accounts by likes
+      sql: select commit.record->>'subject'->>'uri' as post, count(*) from jetstream where commit.collection = 'app.bsky.feed.like' and post is not null group by 1 order by 2 desc limit 10;
+
+    - name: jetstream_user_signups_count
+      help: The number of new signups
+      sql: select count(*) from jetstream where commit.collection = 'app.bsky.actor.profile' and commit.operation = 'create';
+
   summary:
-    - name: author_post_likes_count
+    # DuckDB
+    - name: duckdb_author_post_likes_count
       help: Quantiles of likes on DuckDB Bluesky posts by author
       sql: select author.handle, likeCount as val from posts;
       objectives:
@@ -65,10 +96,47 @@ metrics:
         - 0.9
         - 0.99
 
-    - name: author_post_repost_count
+    - name: duckdb_author_post_repost_count
       help: Quantiles of reposts on DuckDB Bluesky posts by author
       sql: select author.handle, repostCount as val from posts;
       objectives:
         - 0.5
         - 0.9
         - 0.99
+
+    # Jetstream
+    - name: jestream_user_signups_per_minute_bucket
+      help: Quantiles of the rate of user signups per minute
+      sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.actor.profile' and commit.operation = 'create' group by 1 order by 1 asc;
+      objectives:
+        - 0.5
+        - 0.9
+        - 0.99
+        - 0.999
+
+    - name: jestream_reposts_per_minute_bucket
+      help: Quantiles of the rate of reposts per minute
+      sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.feed.repost' group by 1;
+      objectives:
+        - 0.5
+        - 0.9
+        - 0.99
+        - 0.999
+
+    - name: jestream_likes_per_minute_bucket
+      help: Quantiles of the rate of likes per minute
+      sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.feed.like' and commit.operation = 'create' group by 1;
+      objectives:
+        - 0.5
+        - 0.9
+        - 0.99
+        - 0.999
+
+    - name: jestream_follows_per_minute_bucket
+      help: Quantiles of the rate of follows per minute
+      sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.graph.follow' and commit.operation = 'create' group by 1;
+      objectives:
+        - 0.5
+        - 0.9
+        - 0.99
+        - 0.999
