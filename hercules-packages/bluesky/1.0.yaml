@@ -1,6 +1,10 @@
 name: bluesky
 version: 1.0
 
+extensions:
+  community:
+    - name: psql
+
 sources:
   - name: profile
     type: sql
@@ -143,7 +147,7 @@ metrics:
 
     - name: jetstream_posts_per_minute_bucket
       help: Quantiles of posts per minute
-      sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.feed.post' and commit.operation = 'create' group by 1;
+      sql: from jetstream |> select date_trunc('minute', make_timestamp(time_us)), count(*) where commit.collection = 'app.bsky.feed.post' and commit.operation = 'create' group by 1;
       objectives:
         - 0.5
         - 0.9
