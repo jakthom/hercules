@@ -20,8 +20,7 @@ sources:
 
   - name: jetstream
     type: sql
-    # source: select * from read_parquet('https://hive.buz.dev/bluesky/jetstream/latest.parquet');
-    source: select * from read_parquet('jetstream.parquet');
+    source: select * from read_parquet('https://hive.buz.dev/bluesky/jetstream/latest.parquet');
     materialize: true
     refreshIntervalSeconds: 600
 
