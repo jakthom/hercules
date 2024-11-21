@@ -106,7 +106,7 @@ metrics:
 
     # Jetstream
     - name: jetstream_user_signups_per_minute_bucket
-      help: Quantiles of the rate of user signups per minute
+      help: Quantiles of user signups per minute
       sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.actor.profile' and commit.operation = 'create' group by 1 order by 1 asc;
       objectives:
         - 0.5
@@ -115,7 +115,7 @@ metrics:
         - 0.999
 
     - name: jetstream_reposts_per_minute_bucket
-      help: Quantiles of the rate of reposts per minute
+      help: Quantiles of reposts per minute
       sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.feed.repost' group by 1;
       objectives:
         - 0.5
@@ -124,7 +124,7 @@ metrics:
         - 0.999
 
     - name: jetstream_likes_per_minute_bucket
-      help: Quantiles of the rate of likes per minute
+      help: Quantiles of likes per minute
       sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.feed.like' and commit.operation = 'create' group by 1;
       objectives:
         - 0.5
@@ -133,7 +133,7 @@ metrics:
         - 0.999
 
     - name: jetstream_follows_per_minute_bucket
-      help: Quantiles of the rate of follows per minute
+      help: Quantiles of follows per minute
       sql: select date_trunc('minute', make_timestamp(time_us)), count(*) from jetstream where commit.collection = 'app.bsky.graph.follow' and commit.operation = 'create' group by 1;
       objectives:
         - 0.5
