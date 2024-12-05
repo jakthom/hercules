@@ -73,6 +73,9 @@ func Materialize(conn *sql.Conn, query Sql) ([]QueryResult, error) {
 			if columnName == "value" || columnName == "val" || columnName == "v" || isFunctionColumn(columnName) {
 				queryResult.Value = toFloat64(value)
 			} else {
+				if value == nil {
+					value = NULL // If the value is null, set it to a string value.
+				}
 				queryResult.Labels[columnName] = value.(string)
 			}
 		}
