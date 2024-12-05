@@ -8,5 +8,5 @@ globalLabels:
   - env: $ENV # Inject prometheus labels from env var
 
 packages:
-  # - package: hercules-packages/bluesky/1.0.yml
+  - package: hercules-packages/bluesky/1.0.yml
   - package: hercules-packages/snowflake/1.0.yml
