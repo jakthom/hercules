@@ -1,11 +1,39 @@
-FROM --platform=linux/arm64 golang:1.22.1
-WORKDIR /workspace
+FROM golang:1.24.2 AS build
+
+# Set working directory for build stage
+WORKDIR /build
+
+# Copy source code
 COPY . .
 
-RUN mkdir artifacts;
+# Set build environment
 ENV CGO_ENABLED=1
 ENV GOOS=linux
 ENV GOARCH=arm64
 
-RUN go build -o artifacts/hercules-$GOOS-$GOARCH -ldflags="-X main.VERSION=$(cat .VERSION)" ./cmd/hercules
-ENTRYPOINT []
+# Build the application with CGO enabled but without static linking
+# which is problematic with certain CGO dependencies
+RUN go build -o hercules -ldflags="-X main.version=$(cat .VERSION || echo 'dev')" ./cmd/hercules
+
+# Create directories for mount points
+RUN mkdir -p /build/config /build/assets /build/hercules-packages
+
+# Use distroless as a minimal base image
+# Distroless containers provide a minimal runtime with basic dependencies
+FROM gcr.io/distroless/cc-debian12:nonroot
+
+# Set working directory for the application
+WORKDIR /app
+
+# Copy binary from build stage
+COPY --from=build /build/hercules /app/hercules
+
+# Default port value - can be overridden at build time with --build-arg
+ARG PORT=9100
+ENV PORT=${PORT}
+
+# Expose the port specified at build time
+EXPOSE ${PORT}
+
+# Set the entrypoint to use the config directory
+ENTRYPOINT ["/app/hercules", "--config", "/app/config/hercules.yml"]

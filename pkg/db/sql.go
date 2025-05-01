@@ -1,3 +1,4 @@
 package db
 
-type Sql string
+// SQL represents a SQL query string.
+type SQL string

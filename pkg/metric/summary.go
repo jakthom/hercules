@@ -10,8 +10,19 @@ import (
 )
 
 type Summary struct {
-	Definition MetricDefinition
+	Definition Definition
 	Collector  *prometheus.SummaryVec
+}
+
+func NewSummary(definition Definition) Summary {
+	metric := Summary{
+		Definition: definition,
+	}
+	err := metric.register()
+	if err != nil {
+		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
+	}
+	return metric
 }
 
 func (m *Summary) AsVec() *prometheus.SummaryVec {
@@ -45,7 +56,7 @@ func (m *Summary) Materialize(conn *sql.Conn) error {
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 	}
-	results, err := db.Materialize(conn, m.Definition.Sql)
+	results, err := db.Materialize(conn, m.Definition.SQL)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 		return err
@@ -55,15 +66,4 @@ func (m *Summary) Materialize(conn *sql.Conn) error {
 		m.Collector.With(map[string]string(l)).Observe(r.Value)
 	}
 	return nil
-}
-
-func NewSummary(definition MetricDefinition) Summary {
-	metric := Summary{
-		Definition: definition,
-	}
-	err := metric.register()
-	if err != nil {
-		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
-	}
-	return metric
 }

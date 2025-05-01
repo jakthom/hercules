@@ -89,6 +89,161 @@ Hercules extensions, sources, metrics, and macros can be logically grouped and d
 Examples can be found in the [hercules-packages](/hercules-packages/) directory.
 
 
+# Getting Started Locally
+
+This guide will help you get Hercules up and running on your local machine, including instructions for configuration, testing, and loading sample data.
+
+## Prerequisites
+
+- Go 1.22+ installed on your system
+- Git to clone the repository
+- Basic understanding of SQL and Prometheus metrics
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/jakthom/hercules.git
+   cd hercules
+   ```
+
+2. Build the project:
+   ```
+   make build
+   ```
+
+## Running Hercules
+
+### Basic Execution
+
+Start Hercules with default settings:
+```
+make run
+```
+
+This command starts Hercules with the following defaults:
+- Configuration file: `hercules.yml` in the project root
+- Port: 9999 (customizable in config)
+- SQLite database: `h.db` in the project root
+
+### Debug Mode
+
+To run Hercules with additional debug logging:
+```
+make debug
+```
+
+### Custom Configuration
+
+Hercules uses a YAML configuration file. By default, it looks for `hercules.yml` in the project root. You can specify a custom configuration path using the environment variable:
+```
+HERCULES_CONFIG_PATH=/path/to/config.yml make run
+```
+
+## Configuration File Structure
+
+The `hercules.yml` configuration file defines your server settings and packages:
+
+```yaml
+version: 1
+
+name: your-instance-name
+debug: false
+port: 9100
+
+globalLabels:
+  - env: $ENV  # Inject prometheus labels from environment variables
+  - region: us-west-1
+
+packages:
+  - package: hercules-packages/sample-package/1.0.yml
+```
+
+## Testing
+
+Run the test suite to ensure everything is working correctly:
+```
+make test
+```
+
+For more detailed test coverage information:
+```
+make test-cover-pkg
+```
+
+## Working with Sample Data
+
+Hercules includes several example packages in the `/hercules-packages/` directory:
+
+1. **NYC Taxi Data**: 
+   ```yaml
+   packages:
+     - package: hercules-packages/nyc-taxi/1.0.yml
+   ```
+
+2. **Snowflake Metrics**:
+   ```yaml
+   packages:
+     - package: hercules-packages/snowflake/1.0.yml
+   ```
+
+3. **TPCH Benchmarks**:
+   ```yaml
+   packages:
+     - package: hercules-packages/tpch/1.0.yml
+   ```
+
+4. **Bluesky Analytics**:
+   ```yaml
+   packages:
+     - package: hercules-packages/bluesky/1.0.yml
+   ```
+
+To use any of these packages, add them to your `hercules.yml` file.
+
+## Accessing Metrics
+
+Once Hercules is running, metrics are available at:
+- http://localhost:9100/metrics (if using default port 9100)
+
+You can connect Prometheus or any compatible metrics collector to this endpoint.
+
+## Environment Variables
+
+Hercules supports several environment variables:
+- `HERCULES_CONFIG_PATH`: Path to configuration file
+- `DEBUG`: Set to enable debug logging
+- `TRACE`: Set to enable trace logging
+- `ENV`: Used for labeling metrics (defaults to current username)
+
+## Creating Custom Packages
+
+To create your own package:
+
+1. Create a new YAML file in a directory of your choice:
+   ```yaml
+   name: my-package
+   version: 1.0
+   
+   extensions:
+     # SQLite extensions, if needed
+   
+   macros:
+     # SQL macros
+   
+   sources:
+     # Data sources
+   
+   metrics:
+     # Metric definitions
+   ```
+
+2. Reference your package in the main configuration:
+   ```yaml
+   packages:
+     - package: path/to/your-package.yml
+   ```
+
 # Bonus
 
 - Calculate prometheus-compatible metrics from geospatial data

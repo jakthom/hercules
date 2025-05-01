@@ -14,30 +14,7 @@ type MetricRegistry struct {
 	Histogram map[string]metric.Histogram
 }
 
-func (mr *MetricRegistry) Materialize(conn *sql.Conn) error { // TODO -> Make this return a list of "materialization errors" if something fails
-	var m []metric.Materializeable
-	for _, metric := range mr.Gauge {
-		m = append(m, &metric)
-	}
-	for _, metric := range mr.Histogram {
-		m = append(m, &metric)
-	}
-	for _, metric := range mr.Summary {
-		m = append(m, &metric)
-	}
-	for _, metric := range mr.Counter {
-		m = append(m, &metric)
-	}
-	for _, materializable := range m {
-		err := materializable.Materialize(conn)
-		if err != nil {
-			log.Error().Err(err).Msg("could not materialize metric")
-		}
-	}
-	return nil
-}
-
-func NewMetricRegistry(definitions metric.MetricDefinitions) *MetricRegistry {
+func NewMetricRegistry(definitions metric.Definitions) *MetricRegistry {
 	r := MetricRegistry{}
 	r.Gauge = make(map[string]metric.Gauge)
 	r.Histogram = make(map[string]metric.Histogram)
@@ -61,4 +38,29 @@ func NewMetricRegistry(definitions metric.MetricDefinitions) *MetricRegistry {
 		r.Counter[c.Definition.FullName()] = c
 	}
 	return &r
+}
+
+func (mr *MetricRegistry) Materialize(conn *sql.Conn) error {
+	// TODO: Make this return a list of "materialization errors"
+	// if something fails
+	var m []metric.Materializeable
+	for _, metric := range mr.Gauge {
+		m = append(m, &metric)
+	}
+	for _, metric := range mr.Histogram {
+		m = append(m, &metric)
+	}
+	for _, metric := range mr.Summary {
+		m = append(m, &metric)
+	}
+	for _, metric := range mr.Counter {
+		m = append(m, &metric)
+	}
+	for _, materializable := range m {
+		err := materializable.Materialize(conn)
+		if err != nil {
+			log.Error().Err(err).Msg("could not materialize metric")
+		}
+	}
+	return nil
 }
