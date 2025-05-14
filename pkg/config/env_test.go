@@ -1,28 +1,29 @@
-package config
+// Package config_test contains tests for config package
+package config_test
 
 import (
-	"os"
 	"testing"
 
+	"github.com/jakthom/hercules/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestIsTraceMode(t *testing.T) {
-	assert.False(t, IsTraceMode())
-	os.Setenv(TRACE, "true")
-	assert.True(t, IsTraceMode())
-	os.Setenv(TRACE, "True")
-	assert.True(t, IsTraceMode())
-	os.Setenv(TRACE, "1")
-	assert.True(t, IsTraceMode())
+	assert.False(t, config.IsTraceMode())
+	t.Setenv(config.TraceEnvVar, "true")
+	assert.True(t, config.IsTraceMode())
+	t.Setenv(config.TraceEnvVar, "True")
+	assert.True(t, config.IsTraceMode())
+	t.Setenv(config.TraceEnvVar, "1")
+	assert.True(t, config.IsTraceMode())
 }
 
 func TestIsDebugMode(t *testing.T) {
-	assert.False(t, IsDebugMode())
-	os.Setenv(DEBUG, "true")
-	assert.True(t, IsDebugMode())
-	os.Setenv(DEBUG, "True")
-	assert.True(t, IsDebugMode())
-	os.Setenv(DEBUG, "1")
-	assert.True(t, IsDebugMode())
+	assert.False(t, config.IsDebugMode())
+	t.Setenv(config.DebugEnvVar, "true")
+	assert.True(t, config.IsDebugMode())
+	t.Setenv(config.DebugEnvVar, "True")
+	assert.True(t, config.IsDebugMode())
+	t.Setenv(config.DebugEnvVar, "1")
+	assert.True(t, config.IsDebugMode())
 }

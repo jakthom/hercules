@@ -1,23 +1,24 @@
-package labels
+// Package labels_test contains tests for the labels package
+package labels_test
 
 import (
-	"os"
 	"testing"
 
+	"github.com/jakthom/hercules/pkg/labels"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInjectLabelFromEnv(t *testing.T) {
 	label := "$HERCULES"
 	value := "notprometheus"
-	os.Setenv("HERCULES", value)
+	t.Setenv("HERCULES", value)
 
-	labelValue := InjectLabelFromEnv(label)
+	labelValue := labels.InjectLabelFromEnv(label)
 	assert.Equal(t, value, labelValue)
 }
 
 // func TestLabelNames(t *testing.T) {
-// 	labelNames := Labels{
+// 	labelNames := labels.Labels{
 // 		"cell":     "ausw1",
 // 		"fromEnv":  "testing",
 // 		"hercules": "fake",
@@ -29,19 +30,19 @@ func TestInjectLabelFromEnv(t *testing.T) {
 // }
 
 func TestMerge(t *testing.T) {
-	someLabels := Labels{
+	someLabels := labels.Labels{
 		"cell":    "ausw1",
 		"fromEnv": "testing",
 	}
-	moreLabels := Labels{
+	moreLabels := labels.Labels{
 		"hercules": "testing",
 	}
 
-	want := Labels{
+	want := labels.Labels{
 		"cell":     "ausw1",
 		"fromEnv":  "testing",
 		"hercules": "testing",
 	}
-	got := Merge(someLabels, moreLabels)
+	got := labels.Merge(someLabels, moreLabels)
 	assert.Equal(t, want, got)
 }

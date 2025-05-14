@@ -13,7 +13,7 @@
 #   - SNOWFLAKE.ACCOUNT_USAGE.DOCUMENT_AI_USAGE_HISTORY
 
 name: snowflake
-version: 1.0
+version: '1.0'
 
 macros:
   - sql: one() AS (SELECT 1);

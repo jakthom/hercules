@@ -1,5 +1,5 @@
 name: nyc_taxi
-version: 1.0
+version: '1.0'
 
 sources:
   - name: nyc_yellow_taxi_june_2024

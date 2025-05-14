@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -23,8 +24,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var VERSION string
-
 type Hercules struct {
 	config           config.Config
 	db               *sql.DB
@@ -32,6 +31,7 @@ type Hercules struct {
 	conn             *sql.Conn
 	metricRegistries []*registry.MetricRegistry
 	debug            bool
+	version          string // Added version field to the struct
 }
 
 func (d *Hercules) configure() {
@@ -46,10 +46,21 @@ func (d *Hercules) configure() {
 	if trace {
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
 	}
-	d.config, _ = config.GetConfig()
+
+	// Load configuration and handle errors
+	var err error
+	d.config, err = config.GetConfig()
+	if err != nil {
+		log.Warn().Err(err).Msg("using default configuration due to error")
+	} else if !debug && d.config.Debug {
+		d.debug = true
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		log.Debug().Msg("debug mode enabled via config file")
+	}
 }
 
 func (d *Hercules) initializeFlock() {
+	log.Debug().Str("db", d.config.DB).Msg("initializing database")
 	d.db, d.conn = flock.InitializeDB(d.config)
 }
 
@@ -81,15 +92,13 @@ func (d *Hercules) loadPackages() {
 		},
 	})
 	d.packages = pkgs
-
 }
 
 func (d *Hercules) initializePackages() {
-	for _, p := range d.packages {
-		err := p.InitializeWithConnection(d.conn)
-		if err != nil {
-			log.Error().Err(err).Interface("package", p.Name).Msg("could not initialize package " + string(p.Name))
-		}
+	// Use our new parallel package initialization function
+	err := herculespackage.InitializePackagesWithConnection(d.packages, d.conn)
+	if err != nil {
+		log.Error().Err(err).Msg("error initializing packages")
 	}
 }
 
@@ -115,37 +124,92 @@ func (d *Hercules) Initialize() {
 }
 
 func (d *Hercules) Run() {
+	// Create server mux and configure routes
 	mux := http.NewServeMux()
 	prometheus.Unregister(collectors.NewGoCollector()) // Remove golang node defaults
 	mux.Handle("/metrics", middleware.MetricsMiddleware(d.conn, d.metricRegistries, promhttp.Handler()))
 	mux.Handle("/", http.RedirectHandler("/metrics", http.StatusSeeOther))
 
+	// Server timeout constants
+	const (
+		readTimeoutSeconds     = 5
+		writeTimeoutSeconds    = 10
+		idleTimeoutSeconds     = 120
+		shutdownTimeoutSeconds = 15
+	)
+
+	// Configure server with proper timeouts for better performance
 	srv := &http.Server{
-		Addr:    ":" + d.config.Port,
-		Handler: mux,
+		Addr:         ":" + d.config.Port,
+		Handler:      mux,
+		ReadTimeout:  readTimeoutSeconds * time.Second,
+		WriteTimeout: writeTimeoutSeconds * time.Second,
+		IdleTimeout:  idleTimeoutSeconds * time.Second,
 	}
+
+	// Setup graceful shutdown with proper signal handling
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	// Start server in a goroutine
+	serverErrors := make(chan error, 1)
 	go func() {
-		log.Info().Msg("hercules is running with version: " + VERSION)
-		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-			log.Info().Msgf("server shut down")
+		log.Info().Msg("hercules is running with version: " + d.version)
+		serverErrors <- srv.ListenAndServe()
+	}()
+
+	// Block until we receive a signal or server error
+	select {
+	case err := <-serverErrors:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error().Err(err).Msg("server error")
+		}
+	case <-ctx.Done():
+		log.Info().Msg("shutdown initiated")
+	}
+
+	// Create a timeout context for graceful shutdown
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeoutSeconds*time.Second)
+	defer shutdownCancel()
+
+	// Use a WaitGroup to ensure proper cleanup of resources
+	var wg sync.WaitGroup
+
+	// Gracefully shut down the server
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Error().Err(err).Msg("server shutdown error")
 		}
 	}()
-	// Safe shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Info().Msg("shutting down server...")
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal().Stack().Err(err).Msg("server forced to shutdown")
-		d.db.Close()
-		if !d.debug {
-			os.Remove(d.config.Db)
+
+	// Close database connection in parallel
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Debug().Msg("closing database connection")
+		if err := d.db.Close(); err != nil {
+			log.Error().Err(err).Msg("error closing database connection")
 		}
-	}
-	d.db.Close()
-	if !d.debug {
-		os.Remove(d.config.Db)
+		if !d.debug {
+			if err := os.Remove(d.config.DB); err != nil {
+				log.Error().Err(err).Str("db", d.config.DB).Msg("error removing database file")
+			}
+		}
+	}()
+
+	// Wait for all cleanup operations to complete or timeout
+	waitCh := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitCh)
+	}()
+
+	select {
+	case <-waitCh:
+		log.Info().Msg("shutdown completed gracefully")
+	case <-shutdownCtx.Done():
+		log.Warn().Msg("shutdown timed out, forcing exit")
 	}
 }

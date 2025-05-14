@@ -10,8 +10,20 @@ import (
 )
 
 type Gauge struct {
-	Definition MetricDefinition
+	Definition Definition
 	Collector  *prometheus.GaugeVec
+}
+
+func NewGauge(definition Definition) Gauge {
+	// TODO! Turn this into a generic function instead of copy/pasta
+	metric := Gauge{
+		Definition: definition,
+	}
+	err := metric.register()
+	if err != nil {
+		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
+	}
+	return metric
 }
 
 func (m *Gauge) asVec() *prometheus.GaugeVec {
@@ -41,7 +53,7 @@ func (m *Gauge) Materialize(conn *sql.Conn) error {
 		log.Error().Err(err).Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 	}
 
-	results, err := db.Materialize(conn, m.Definition.Sql)
+	results, err := db.Materialize(conn, m.Definition.SQL)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 		return err
@@ -51,16 +63,4 @@ func (m *Gauge) Materialize(conn *sql.Conn) error {
 		m.Collector.With(map[string]string(l)).Set(r.Value)
 	}
 	return nil
-}
-
-func NewGauge(definition MetricDefinition) Gauge {
-	// TODO! Turn this into a generic function instead of copy/pasta
-	metric := Gauge{
-		Definition: definition,
-	}
-	err := metric.register()
-	if err != nil {
-		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
-	}
-	return metric
 }

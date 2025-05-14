@@ -10,8 +10,19 @@ import (
 )
 
 type Counter struct {
-	Definition MetricDefinition
+	Definition Definition
 	Collector  *prometheus.CounterVec
+}
+
+func NewCounter(definition Definition) Counter {
+	metric := Counter{
+		Definition: definition,
+	}
+	err := metric.register()
+	if err != nil {
+		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
+	}
+	return metric
 }
 
 func (m *Counter) AsVec() *prometheus.CounterVec {
@@ -40,7 +51,7 @@ func (m *Counter) Materialize(conn *sql.Conn) error {
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 	}
-	results, err := db.Materialize(conn, m.Definition.Sql)
+	results, err := db.Materialize(conn, m.Definition.SQL)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 		return err
@@ -50,15 +61,4 @@ func (m *Counter) Materialize(conn *sql.Conn) error {
 		m.Collector.With(map[string]string(l)).Inc()
 	}
 	return nil
-}
-
-func NewCounter(definition MetricDefinition) Counter {
-	metric := Counter{
-		Definition: definition,
-	}
-	err := metric.register()
-	if err != nil {
-		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
-	}
-	return metric
 }

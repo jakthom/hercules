@@ -2,13 +2,14 @@ package util
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/rs/zerolog/log"
 )
 
 func Pprint(i interface{}) string {
 	payload, _ := json.MarshalIndent(i, "", "\t")
 	stringified := string(payload)
-	fmt.Println(stringified)
+	log.Debug().Msg(stringified)
 	return stringified
 }
 

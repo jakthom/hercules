@@ -10,8 +10,19 @@ import (
 )
 
 type Histogram struct {
-	Definition MetricDefinition
+	Definition Definition
 	Collector  *prometheus.HistogramVec
+}
+
+func NewHistogram(definition Definition) Histogram {
+	metric := Histogram{
+		Definition: definition,
+	}
+	err := metric.register()
+	if err != nil {
+		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
+	}
+	return metric
 }
 
 func (m *Histogram) AsVec() *prometheus.HistogramVec {
@@ -41,7 +52,7 @@ func (m *Histogram) Materialize(conn *sql.Conn) error {
 	if err != nil {
 		log.Error().Err(err).Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 	}
-	results, err := db.Materialize(conn, m.Definition.Sql)
+	results, err := db.Materialize(conn, m.Definition.SQL)
 	if err != nil {
 		log.Error().Interface("metric", m.Definition.FullName()).Msg("could not materialize metric")
 		return err
@@ -51,15 +62,4 @@ func (m *Histogram) Materialize(conn *sql.Conn) error {
 		m.Collector.With(map[string]string(l)).Observe(r.Value)
 	}
 	return nil
-}
-
-func NewHistogram(definition MetricDefinition) Histogram {
-	metric := Histogram{
-		Definition: definition,
-	}
-	err := metric.register()
-	if err != nil {
-		log.Error().Err(err).Interface("metric", definition.FullName()).Msg("could not register metric")
-	}
-	return metric
 }

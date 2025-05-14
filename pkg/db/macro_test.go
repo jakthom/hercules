@@ -1,40 +1,42 @@
-package db
+// Package db_test contains tests for the db package
+package db_test
 
 import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	testutil "github.com/jakthom/hercules/pkg/testUtil"
+	"github.com/jakthom/hercules/pkg/db"
+	"github.com/jakthom/hercules/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMacro(t *testing.T) {
 	conn, mock, _ := testutil.GetMockedConnection()
 
-	macroSql := Sql("test() as (select 1)")
+	macroSQL := db.SQL("test() as (select 1)")
 
-	macro := Macro{
+	macro := db.Macro{
 		Name: "test",
-		Sql:  macroSql,
+		SQL:  macroSQL,
 	}
 
 	// Ensure creation/replacement sql
-	assert.Equal(t, "create or replace macro "+macroSql, macro.CreateOrReplaceSql())
+	assert.Equal(t, "create or replace macro "+string(macroSQL), string(macro.CreateOrReplaceSQL()))
 	// Ensure query is executed appropriately
-	mock.ExpectQuery(string(macro.CreateOrReplaceSql())).WithoutArgs().WillReturnRows(sqlmock.NewRows([]string{}))
-	macro.ensureWithConnection(conn)
+	mock.ExpectQuery(string(macro.CreateOrReplaceSQL())).WithoutArgs().WillReturnRows(sqlmock.NewRows([]string{}))
+	db.TestHookEnsureMacro(conn, macro)
 }
 
-func TestEnsureMacrosWithConnection(t *testing.T) {
+func TestEnsureMacrosWithConnection(_ *testing.T) {
 	conn, mock, _ := testutil.GetMockedConnection()
 
-	macros := []Macro{
+	macros := []db.Macro{
 		{
 			Name: "test",
-			Sql:  Sql("test() as (select 1)"),
+			SQL:  db.SQL("test() as (select 1)"),
 		},
 	}
 
-	mock.ExpectQuery(string(macros[0].CreateOrReplaceSql())).WithoutArgs().WillReturnRows(sqlmock.NewRows([]string{}))
-	EnsureMacrosWithConnection(macros, conn)
+	mock.ExpectQuery(string(macros[0].CreateOrReplaceSQL())).WithoutArgs().WillReturnRows(sqlmock.NewRows([]string{}))
+	db.EnsureMacrosWithConnection(macros, conn)
 }
