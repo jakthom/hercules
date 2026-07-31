@@ -1,2 +1,17 @@
+apiVersion: hercules.dev/v1alpha1
+kind: Package
 name: tpch
-version: 1.0
+version: "1.0"
+
+sources:
+  - name: tpch_scale
+    type: sql
+    source: select 1.0 as scale_factor
+    materialize: false
+    refreshIntervalSeconds: 0
+
+metrics:
+  gauge:
+    - name: scale_factor
+      help: Configured demonstration TPC-H scale factor.
+      sql: select scale_factor as value from tpch_scale

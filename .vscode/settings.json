@@ -1,6 +1,6 @@
 {
     "yaml.schemas": {
-        "./schemas/packages.json": "./hercules-packages/*.yaml",
-        "./schemas/config.json": "/hercules.yaml",
+        "./schemas/package.json": "hercules-packages/**/*.yml",
+        "./schemas/config.json": "hercules.yml"
     }
 }

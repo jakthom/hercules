@@ -1,13 +1,16 @@
 package config
 
-import "os"
+import (
+	"os"
+	"strconv"
+)
 
 func IsTraceMode() bool {
-	trace := os.Getenv(TraceEnvVar)
-	return trace == "true" || trace == "1" || trace == "True"
+	value, _ := strconv.ParseBool(os.Getenv(TraceEnvVar))
+	return value
 }
 
 func IsDebugMode() bool {
-	debug := os.Getenv(DebugEnvVar)
-	return debug == "true" || debug == "1" || debug == "True"
+	value, _ := strconv.ParseBool(os.Getenv(DebugEnvVar))
+	return value
 }

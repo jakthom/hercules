@@ -1,48 +1,42 @@
-// Package labels_test contains tests for the labels package
 package labels_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/jakthom/hercules/pkg/labels"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestInjectLabelFromEnv(t *testing.T) {
-	label := "$HERCULES"
-	value := "notprometheus"
-	t.Setenv("HERCULES", value)
-
-	labelValue := labels.InjectLabelFromEnv(label)
-	assert.Equal(t, value, labelValue)
+func TestResolveEnvironment(t *testing.T) {
+	t.Setenv("HERCULES_LABEL", "resolved")
+	resolved, err := (labels.Labels{"env": "$HERCULES_LABEL", "region": "east"}).ResolveEnvironment()
+	require.NoError(t, err)
+	assert.Equal(t, labels.Labels{"env": "resolved", "region": "east"}, resolved)
 }
 
-// func TestLabelNames(t *testing.T) {
-// 	labelNames := labels.Labels{
-// 		"cell":     "ausw1",
-// 		"fromEnv":  "testing",
-// 		"hercules": "fake",
-// 	}.LabelNames()
-// 	assert.Equal(t, 3, len(labelNames))
-// 	assert.Equal(t, "cell", labelNames[0])
-// 	assert.Equal(t, "fromEnv", labelNames[1])
-// 	assert.Equal(t, "hercules", labelNames[2])
-// }
+func TestResolveEnvironmentRejectsMissingAndEmptyReferences(t *testing.T) {
+	_, err := (labels.Labels{"env": "$"}).ResolveEnvironment()
+	require.Error(t, err)
+	_, err = (labels.Labels{"env": "$HERCULES_DOES_NOT_EXIST"}).ResolveEnvironment()
+	require.Error(t, err)
+}
 
-func TestMerge(t *testing.T) {
-	someLabels := labels.Labels{
-		"cell":    "ausw1",
-		"fromEnv": "testing",
-	}
-	moreLabels := labels.Labels{
-		"hercules": "testing",
-	}
+func TestLabelsAcceptLegacyList(t *testing.T) {
+	var decoded labels.Labels
+	require.NoError(t, json.Unmarshal([]byte(`[{"env":"test"},{"region":"east"}]`), &decoded))
+	assert.Equal(t, labels.Labels{"env": "test", "region": "east"}, decoded)
+}
 
-	want := labels.Labels{
-		"cell":     "ausw1",
-		"fromEnv":  "testing",
-		"hercules": "testing",
-	}
-	got := labels.Merge(someLabels, moreLabels)
-	assert.Equal(t, want, got)
+func TestMergeStrictRejectsCollision(t *testing.T) {
+	_, err := labels.MergeStrict(labels.Labels{"env": "a"}, labels.Labels{"env": "b"})
+	require.Error(t, err)
+}
+
+func TestLabelNamesAreSortedAndValidated(t *testing.T) {
+	configured := labels.Labels{"z": "1", "a": "2"}
+	assert.Equal(t, []string{"a", "z"}, configured.LabelNames())
+	assert.NoError(t, configured.ValidateNames())
+	assert.Error(t, (labels.Labels{"not-valid": "x"}).ValidateNames())
 }

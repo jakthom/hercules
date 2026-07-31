@@ -12,18 +12,21 @@
 #   - SNOWFLAKE.ACCOUNT_USAGE.DATA_TRANSFER_HISTORY
 #   - SNOWFLAKE.ACCOUNT_USAGE.DOCUMENT_AI_USAGE_HISTORY
 
+apiVersion: hercules.dev/v1alpha1
+kind: Package
 name: snowflake
 version: '1.0'
 
 macros:
-  - sql: one() AS (SELECT 1);
+  - name: one
+    sql: one() AS (SELECT 1);
 
 sources:
   - name: snowflake_query_history
     type: parquet
-    source: assets/snowflake_query_history.parquet
+    source: ../../assets/snowflake_query_history.parquet
     materialize: true
-    refreshIntervalSeconds: 5
+    refreshIntervalSeconds: 0
 
 metrics:
   gauge:
@@ -40,7 +43,7 @@ metrics:
     - name: avg_query_duration_seconds
       help: The average query duration for a particular user, using a particular warehouse
       enabled: true
-      sql: select user_name as user, warehouse_name as warehouse, avg(TOTAL_ELAPSED_TIME) as value from snowflake_query_history group by all;
+      sql: select user_name as user, warehouse_name as warehouse, avg(TOTAL_ELAPSED_TIME) / 1000.0 as value from snowflake_query_history group by all;
 
     - name: table_operations_count
       help: The number of operations on each table over the last week
@@ -60,7 +63,7 @@ metrics:
   histogram:
     - name: query_duration_seconds
       help: Histogram of query duration seconds
-      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
+      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time / 1000.0 as value from snowflake_query_history;
       buckets:
         - 0.1
         - 0.5
@@ -84,16 +87,16 @@ metrics:
   summary:
     - name: virtual_warehouse_query_duration_seconds
       help: Summary of query duration seconds
-      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time as value from snowflake_query_history;
+      sql: select user_name as user, warehouse_name as warehouse, total_elapsed_time / 1000.0 as value from snowflake_query_history;
       objectives:
-        - 0.001
-        - 0.05
-        - 0.01
-        - 0.5
-        - 0.9
-        - 0.99
+        - quantile: 0.5
+          error: 0.05
+        - quantile: 0.9
+          error: 0.01
+        - quantile: 0.99
+          error: 0.001
 
   counter:
-    - name: queries_executed_count
+    - name: queries_executed_total
       help: The count of queries executed by user and warehouse
       sql: select user_name as user, warehouse_name as warehouse, 1 as value from snowflake_query_history;

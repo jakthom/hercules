@@ -1,164 +1,114 @@
-// Package source_test contains tests for the source package
 package source_test
 
 import (
+	"context"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jakthom/hercules/pkg/db"
 	"github.com/jakthom/hercules/pkg/source"
-	"github.com/jakthom/hercules/pkg/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestSource_Sql(t *testing.T) {
-	tests := []struct {
-		name     string
-		source   source.Source
-		expected string
-	}{
-		{
-			name: "SQL source type",
-			source: source.Source{
-				Name:   "test_source",
-				Type:   source.SQLSourceType,
-				Source: "SELECT * FROM test_table",
-			},
-			expected: "SELECT * FROM test_table",
-		},
-		{
-			name: "Parquet source type",
-			source: source.Source{
-				Name:   "test_parquet",
-				Type:   source.ParquetSourceType,
-				Source: "/path/to/file.parquet",
-			},
-			expected: "select * from read_parquet('/path/to/file.parquet')",
-		},
-		{
-			name: "JSON source type",
-			source: source.Source{
-				Name:   "test_json",
-				Type:   source.JSONSourceType,
-				Source: "/path/to/file.json",
-			},
-			expected: "select * from read_json_auto('/path/to/file.json')",
-		},
-		{
-			name: "CSV source type",
-			source: source.Source{
-				Name:   "test_csv",
-				Type:   source.CSVSourceType,
-				Source: "/path/to/file.csv",
-			},
-			expected: "select * from read_csv_auto('/path/to/file.csv')",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := tt.source.SQL()
-			assert.Equal(t, tt.expected, string(result))
-		})
-	}
+type sourceExecutor struct {
+	mu      sync.Mutex
+	queries []db.SQL
 }
 
-func TestSource_CreateOrReplaceTableSql(t *testing.T) {
-	src := source.Source{
-		Name:   "test_table",
-		Type:   source.SQLSourceType,
-		Source: "SELECT * FROM source_data",
-	}
-
-	expected := "create or replace table test_table as SELECT * FROM source_data;"
-	result := src.CreateOrReplaceTableSQL()
-	assert.Equal(t, expected, string(result))
+type blockingSourceExecutor struct {
+	started chan struct{}
+	once    sync.Once
+	active  atomic.Int32
+	maximum atomic.Int32
 }
 
-func TestSource_CreateOrReplaceViewSql(t *testing.T) {
-	src := source.Source{
-		Name:   "test_view",
-		Type:   source.SQLSourceType,
-		Source: "SELECT * FROM source_data",
+func (b *blockingSourceExecutor) Exec(ctx context.Context, _ db.SQL) error {
+	active := b.active.Add(1)
+	defer b.active.Add(-1)
+	for {
+		maximum := b.maximum.Load()
+		if active <= maximum || b.maximum.CompareAndSwap(maximum, active) {
+			break
+		}
 	}
-
-	expected := "create or replace view test_view as SELECT * FROM source_data;"
-	result := src.CreateOrReplaceViewSQL()
-	assert.Equal(t, expected, string(result))
+	b.once.Do(func() { close(b.started) })
+	<-ctx.Done()
+	return ctx.Err()
 }
 
-func TestSource_RefreshWithConn_Table(t *testing.T) {
-	src := source.Source{
-		Name:        "test_table",
-		Type:        source.SQLSourceType,
-		Source:      "SELECT * FROM source_data",
-		Materialize: true,
-	}
-
-	conn, mock, _ := testutil.GetMockedConnection()
-
-	// Setup mock expectations - using Query instead of Exec to match RunSqlQuery implementation
-	mock.ExpectQuery("create or replace table test_table as SELECT * FROM source_data;").
-		WillReturnRows(sqlmock.NewRows([]string{"result"}))
-
-	// Call the method through the test hook
-	err := source.TestHookRefreshWithConn(&src, conn)
-
-	// Verify
-	assert.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
+func (b *blockingSourceExecutor) Query(context.Context, db.SQL, int) (db.Table, error) {
+	return db.Table{}, nil
 }
 
-func TestSource_RefreshWithConn_View(t *testing.T) {
-	src := source.Source{
-		Name:        "test_view",
-		Type:        source.SQLSourceType,
-		Source:      "SELECT * FROM source_data",
-		Materialize: false,
-	}
-
-	conn, mock, _ := testutil.GetMockedConnection()
-
-	// Setup mock expectations - using Query instead of Exec to match RunSqlQuery implementation
-	mock.ExpectQuery("create or replace view test_view as SELECT * FROM source_data;").
-		WillReturnRows(sqlmock.NewRows([]string{"result"}))
-
-	// Call the method through the test hook
-	err := source.TestHookRefreshWithConn(&src, conn)
-
-	// Verify
-	assert.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
+func (s *sourceExecutor) Exec(_ context.Context, query db.SQL) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.queries = append(s.queries, query)
+	return nil
 }
 
-func TestInitializeSourcesWithConnection(t *testing.T) {
+func (s *sourceExecutor) Query(context.Context, db.SQL, int) (db.Table, error) {
+	return db.Table{}, nil
+}
+
+func TestSourceSQLAndValidation(t *testing.T) {
+	configured := source.Source{Name: "events", Type: source.ParquetSourceType, Source: "it's.parquet", Materialize: true}
+	require.NoError(t, configured.Validate())
+	assert.Equal(t, "select * from read_parquet('it''s.parquet')", string(configured.SQL()))
+	assert.Equal(t, `create or replace table "events" as select * from read_parquet('it''s.parquet');`, string(configured.CreateOrReplaceSQL()))
+
+	configured.Type = "typo"
+	require.Error(t, configured.Validate())
+}
+
+func TestInitializeIsOrderedAndRejectsDuplicates(t *testing.T) {
+	executor := &sourceExecutor{}
 	sources := []source.Source{
-		{
-			Name:                   "source1",
-			Type:                   source.SQLSourceType,
-			Source:                 "SELECT 1",
-			Materialize:            true,
-			RefreshIntervalSeconds: 60, // Set a positive refresh interval
-		},
-		{
-			Name:        "source2",
-			Type:        source.SQLSourceType,
-			Source:      "SELECT 2",
-			Materialize: false, // Views don't use the ticker
-		},
+		{Name: "one", Type: source.SQLSourceType, Source: "select 1", Materialize: true},
+		{Name: "two", Type: source.SQLSourceType, Source: "select 2", Materialize: false},
 	}
+	require.NoError(t, source.Initialize(t.Context(), executor, sources))
+	assert.Equal(t, []db.SQL{
+		`create or replace table "one" as select 1;`,
+		`create or replace view "two" as select 2;`,
+	}, executor.queries)
+	require.Error(t, source.Initialize(t.Context(), executor, append(sources, sources[0])))
+	require.Error(t, source.Initialize(t.Context(), executor, []source.Source{
+		{Name: "Events", Type: source.SQLSourceType, Source: "select 1"},
+		{Name: "events", Type: source.SQLSourceType, Source: "select 2"},
+	}))
+}
 
-	conn, mock, _ := testutil.GetMockedConnection()
-
-	// Setup mock expectations - using Query instead of Exec to match RunSqlQuery implementation
-	mock.ExpectQuery("create or replace table source1 as SELECT 1;").
-		WillReturnRows(sqlmock.NewRows([]string{"result"}))
-	mock.ExpectQuery("create or replace view source2 as SELECT 2;").
-		WillReturnRows(sqlmock.NewRows([]string{"result"}))
-
-	// Call the function
-	err := source.InitializeSourcesWithConnection(sources, conn)
-
-	// Verify
-	assert.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
+func TestManagerPreventsOverlapAndJoinsCanceledRefresh(t *testing.T) {
+	executor := &blockingSourceExecutor{started: make(chan struct{})}
+	manager := source.NewManager(t.Context(), executor, []source.Source{{
+		Name:                   "events",
+		Type:                   source.SQLSourceType,
+		Source:                 "select 1",
+		Materialize:            true,
+		RefreshIntervalSeconds: 1,
+	}}, time.Hour)
+	manager.Start()
+	manager.Start()
+	select {
+	case <-executor.started:
+	case <-time.After(2 * time.Second):
+		t.Fatal("source refresh did not start")
+	}
+	closed := make(chan struct{})
+	go func() {
+		manager.Close()
+		close(closed)
+	}()
+	select {
+	case <-closed:
+	case <-time.After(time.Second):
+		t.Fatal("source manager did not join canceled refresh")
+	}
+	manager.Close()
+	assert.Equal(t, int32(1), executor.maximum.Load())
+	assert.Equal(t, uint64(1), manager.Statuses()["events"].Failures)
 }

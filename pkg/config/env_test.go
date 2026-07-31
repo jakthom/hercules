@@ -9,6 +9,7 @@ import (
 )
 
 func TestIsTraceMode(t *testing.T) {
+	t.Setenv(config.TraceEnvVar, "")
 	assert.False(t, config.IsTraceMode())
 	t.Setenv(config.TraceEnvVar, "true")
 	assert.True(t, config.IsTraceMode())
@@ -19,6 +20,7 @@ func TestIsTraceMode(t *testing.T) {
 }
 
 func TestIsDebugMode(t *testing.T) {
+	t.Setenv(config.DebugEnvVar, "")
 	assert.False(t, config.IsDebugMode())
 	t.Setenv(config.DebugEnvVar, "true")
 	assert.True(t, config.IsDebugMode())

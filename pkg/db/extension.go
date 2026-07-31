@@ -1,113 +1,106 @@
 package db
 
 import (
-	"database/sql"
-
-	"github.com/rs/zerolog/log"
+	"context"
+	"errors"
+	"fmt"
+	"regexp"
+	"slices"
+	"strings"
 )
 
-// Function to update constants to follow Go naming conventions.
 const (
-	// CommunityExtension represents a community extension type.
-	CommunityExtensionType string = "community"
-	// CoreExtension represents a core extension type.
-	CoreExtensionType string = "core"
+	CommunityExtensionType = "community"
+	CoreExtensionType      = "core"
 )
 
-func ensureExtension(conn *sql.Conn, extensionName string, extensionType string) {
-	var installSQL SQL
-	var loadSQL = SQL("load " + extensionName + ";")
-	if extensionType == CommunityExtensionType {
-		installSQL = SQL("install " + extensionName + " from community;")
-	} else {
-		installSQL = SQL("install " + extensionName + ";")
-	}
-
-	// Run installation query
-	rows, err := RunSQLQuery(conn, installSQL)
-	if err != nil {
-		// Assume that the world depends on indicated extensions installing and loading properly
-		log.Error().Err(err).
-			Interface("extension", extensionName).
-			Msg("unable to install " + extensionType + " extension")
-		panic("Failed to install extension: " + err.Error())
-	}
-	defer func() {
-		if closeErr := rows.Close(); closeErr != nil {
-			log.Error().Err(closeErr).
-				Interface("extension", extensionName).
-				Msg("error closing rows after extension installation")
-		}
-	}()
-
-	// Check for installation errors
-	rowsErr := rows.Err()
-	if rowsErr != nil {
-		log.Error().Err(rowsErr).
-			Interface("extension", extensionName).
-			Msg("error during installation of " + extensionType + " extension")
-		panic("Error during extension installation: " + rowsErr.Error())
-	}
-
-	// Run load query
-	loadRows, err := RunSQLQuery(conn, loadSQL)
-	if err != nil {
-		log.Error().Err(err).
-			Interface("extension", extensionName).
-			Msg("unable to load " + extensionType + " extension")
-		panic("Failed to load extension: " + err.Error())
-	}
-	defer func() {
-		if closeErr := loadRows.Close(); closeErr != nil {
-			log.Error().Err(closeErr).
-				Interface("extension", extensionName).
-				Msg("error closing rows after extension loading")
-		}
-	}()
-
-	// Check for loading errors
-	loadRowsErr := loadRows.Err()
-	if loadRowsErr != nil {
-		log.Error().Err(loadRowsErr).
-			Interface("extension", extensionName).
-			Msg("error during loading of " + extensionType + " extension")
-		panic("Error during extension loading: " + loadRowsErr.Error())
-	}
-
-	log.Debug().Interface("extension", extensionName).Msg(extensionType + " extension ensured")
-}
-
-// TestHookEnsureExtension exposes the ensureExtension function for testing.
-func TestHookEnsureExtension(conn *sql.Conn, extensionName string, extensionType string) {
-	ensureExtension(conn, extensionName, extensionType)
-}
+var extensionNamePattern = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`)
 
 type CoreExtension struct {
-	Name string
-}
-
-func (ce *CoreExtension) ensureWithConnection(conn *sql.Conn) {
-	ensureExtension(conn, ce.Name, CoreExtensionType)
+	Name string `json:"name"`
 }
 
 type CommunityExtension struct {
-	Name string
-}
-
-func (e *CommunityExtension) ensureWithConnection(conn *sql.Conn) {
-	ensureExtension(conn, e.Name, CommunityExtensionType)
+	Name string `json:"name"`
 }
 
 type Extensions struct {
-	Core      []CoreExtension
-	Community []CommunityExtension
+	Core      []CoreExtension      `json:"core"`
+	Community []CommunityExtension `json:"community"`
 }
 
-func EnsureExtensionsWithConnection(extensions Extensions, conn *sql.Conn) {
-	for _, coreExtension := range extensions.Core {
-		coreExtension.ensureWithConnection(conn)
+type ExtensionPolicy struct {
+	Allowed        []string
+	AllowCommunity bool
+}
+
+func EnsureExtensions(ctx context.Context, executor Executor, extensions Extensions, policy ExtensionPolicy) error {
+	if err := ValidateExtensions(extensions, policy); err != nil {
+		return err
 	}
-	for _, communityExtension := range extensions.Community {
-		communityExtension.ensureWithConnection(conn)
+	var errs []error
+	for _, extension := range extensions.Core {
+		if err := ensureExtension(ctx, executor, extension.Name, CoreExtensionType); err != nil {
+			errs = append(errs, err)
+		}
 	}
+	for _, extension := range extensions.Community {
+		if err := ensureExtension(ctx, executor, extension.Name, CommunityExtensionType); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+func ValidateExtensions(extensions Extensions, policy ExtensionPolicy) error {
+	seen := make(map[string]string, len(extensions.Core)+len(extensions.Community))
+	var errs []error
+	for _, extension := range extensions.Core {
+		if err := validateExtension(extension.Name, CoreExtensionType, policy, seen); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	for _, extension := range extensions.Community {
+		if err := validateExtension(extension.Name, CommunityExtensionType, policy, seen); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+func validateExtension(name string, extensionType string, policy ExtensionPolicy, seen map[string]string) error {
+	if !extensionNamePattern.MatchString(name) {
+		return fmt.Errorf("invalid DuckDB extension name %q", name)
+	}
+	lookupName := strings.ToLower(name)
+	if previousType, exists := seen[lookupName]; exists {
+		return fmt.Errorf("DuckDB extension %q is repeated as %s and %s", name, previousType, extensionType)
+	}
+	seen[lookupName] = extensionType
+	if !slices.Contains(policy.Allowed, name) {
+		return fmt.Errorf("DuckDB extension %q is not in security.allowedExtensions", name)
+	}
+	if extensionType == CommunityExtensionType && !policy.AllowCommunity {
+		return fmt.Errorf("community DuckDB extension %q is disabled", name)
+	}
+	return nil
+}
+
+func ensureExtension(
+	ctx context.Context,
+	executor Executor,
+	name string,
+	extensionType string,
+) error {
+	install := SQL("install " + name + ";")
+	if extensionType == CommunityExtensionType {
+		install = SQL("install " + name + " from community;")
+	}
+	if err := executor.Exec(ctx, install); err != nil {
+		return fmt.Errorf("install %s extension %q: %w", extensionType, name, err)
+	}
+	if err := executor.Exec(ctx, SQL("load "+name+";")); err != nil {
+		return fmt.Errorf("load %s extension %q: %w", extensionType, name, err)
+	}
+	return nil
 }

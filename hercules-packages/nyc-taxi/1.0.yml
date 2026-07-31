@@ -1,8 +1,10 @@
+apiVersion: hercules.dev/v1alpha1
+kind: Package
 name: nyc_taxi
 version: '1.0'
 
 sources:
-  - name: nyc_yellow_taxi_june_2024
+  - name: nyc_yellow_taxi_july_2024
     type: parquet
     source: https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-07.parquet
     materialize: true
@@ -13,17 +15,17 @@ metrics:
     - name: pickup_location_fare_total
       help: Total NYC fares for the month of July by pickup location
       enabled: True
-      sql: select PULocationID as pickupLocation, sum(fare_amount) as value from nyc_yellow_taxi_june_2024 group by all
+      sql: select PULocationID as pickupLocation, sum(fare_amount) as value from nyc_yellow_taxi_july_2024 group by all
 
   summary:
     - name: pickup_location_fares # Note this uses prometheus to do the histogram calculation. For better performance histograms can be pre-calculated and represented as a gauge.
       help: Total NYC fares for the month of July by pickup location
       enabled: True
-      sql: select PULocationID as pickupLocation, fare_amount as value from nyc_yellow_taxi_june_2024
+      sql: select PULocationID as pickupLocation, fare_amount as value from nyc_yellow_taxi_july_2024
       objectives:
-        - 0.001
-        - 0.05
-        - 0.01
-        - 0.5
-        - 0.9
-        - 0.99
+        - quantile: 0.5
+          error: 0.05
+        - quantile: 0.9
+          error: 0.01
+        - quantile: 0.99
+          error: 0.001
