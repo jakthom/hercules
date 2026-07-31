@@ -1,0 +1,10 @@
+.git
+.github
+.vscode
+dist
+coverage.out
+hercules
+*.db
+*.wal
+scratch
+.tmp

@@ -1,65 +1,284 @@
 {
-    "$schema": "https://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "properties": {
-        "version": {
-            "type": "string",
-            "description": "Config version",
-            "default": "1"
-        },
-        "name": {
-            "type": "string",
-            "description": "Name of the hercules instance",
-            "default": "hercules"
-        },
-        "debug": {
-            "type": "boolean",
-            "description": "Enable debug logging",
-            "default": false
-        },
-        "port": {
-            "type": "integer",
-            "description": "Port to listen on",
-            "default": "9999"
-        },
-        "globalLabels": {
-            "type": "array",
-            "description": "Global labels injected from config",
-            "items": {
-                "type": "object"
-            }
-        },
-        "packages": {
-            "type": "array",
-            "description": "Packages to load",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "package": {
-                        "type": "string"
-                    },
-                    "variables": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    },
-                    "metricPrefix": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "package"
-                ]
-            }
-        }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hercules.dev/schemas/config.json",
+  "title": "Hercules configuration",
+  "description": "Strict configuration for one Hercules process.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1,
+      "description": "Configuration API version."
     },
-    "required": [
-        "version",
-        "name",
-        "debug",
-        "db",
-        "port",
-        "packages"
-    ]
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "default": "hercules",
+      "description": "Instance name, exported as the reserved hercules label."
+    },
+    "debug": {
+      "type": "boolean",
+      "default": false
+    },
+    "listenAddress": {
+      "type": "string",
+      "default": "127.0.0.1",
+      "description": "IP address or localhost on which the HTTP server listens."
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "default": 9999
+    },
+    "db": {
+      "type": "string",
+      "minLength": 1,
+      "default": ":memory:",
+      "description": "DuckDB path. Relative paths resolve from this configuration file."
+    },
+    "ephemeralDB": {
+      "type": "boolean",
+      "default": false,
+      "description": "Remove a file-backed DuckDB database during orderly shutdown."
+    },
+    "duckdb": {
+      "$ref": "#/$defs/duckdb"
+    },
+    "http": {
+      "$ref": "#/$defs/http"
+    },
+    "collectionIntervalSeconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 604800,
+      "default": 15
+    },
+    "collectionTimeoutSeconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600,
+      "default": 10
+    },
+    "maxRowsPerMetric": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 100000
+    },
+    "maxSeries": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 100000
+    },
+    "globalLabels": {
+      "$ref": "#/$defs/labels"
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/packageReference"
+      },
+      "default": []
+    },
+    "extensions": {
+      "$ref": "package.json#/$defs/extensions"
+    },
+    "macros": {
+      "type": "array",
+      "items": {
+        "$ref": "package.json#/$defs/macro"
+      },
+      "default": []
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "package.json#/$defs/source"
+      },
+      "default": []
+    },
+    "metrics": {
+      "$ref": "package.json#/$defs/metrics"
+    },
+    "security": {
+      "$ref": "#/$defs/security"
+    }
+  },
+  "required": ["version"],
+  "$defs": {
+    "duckdb": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "memoryLimit": {
+          "type": "string",
+          "pattern": "^[0-9]+(?:\\.[0-9]+)? ?(?:B|KB|MB|GB|TB|KiB|MiB|GiB|TiB)$",
+          "default": "1GB"
+        },
+        "threads": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 4
+        },
+        "tempDirectory": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "http": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "tlsCertificateFile": {"const": ""},
+            "tlsKeyFile": {"const": ""}
+          },
+          "default": {}
+        },
+        {
+          "properties": {
+            "tlsCertificateFile": {"type": "string", "minLength": 1},
+            "tlsKeyFile": {"type": "string", "minLength": 1}
+          },
+          "required": ["tlsCertificateFile", "tlsKeyFile"]
+        }
+      ],
+      "properties": {
+        "tlsCertificateFile": {"type": "string", "default": ""},
+        "tlsKeyFile": {"type": "string", "default": ""},
+        "bearerTokenFile": {"type": "string", "default": ""}
+      }
+    },
+    "labels": {
+      "oneOf": [
+        {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "array",
+          "deprecated": true,
+          "description": "Legacy list-of-objects syntax; use one object instead.",
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "default": {}
+    },
+    "packageReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "package": {
+          "type": "string",
+          "minLength": 1
+        },
+        "variables": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "metricPrefix": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_:][a-zA-Z0-9_:]*$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^(?:sha256:)?[a-fA-F0-9]{64}$"
+        }
+      },
+      "required": ["package"]
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {"allowRemotePackages": {"const": true}},
+            "required": ["allowRemotePackages"]
+          },
+          "then": {
+            "properties": {"allowedPackageHosts": {"type": "array", "minItems": 1}},
+            "required": ["allowedPackageHosts"]
+          }
+        },
+        {
+          "if": {
+            "properties": {"offline": {"const": true}},
+            "required": ["offline"]
+          },
+          "then": {
+            "properties": {
+              "allowRemotePackages": {"const": true},
+              "packageCacheDirectory": {"type": "string", "minLength": 1}
+            },
+            "required": ["allowRemotePackages", "packageCacheDirectory"]
+          }
+        }
+      ],
+      "properties": {
+        "allowRemotePackages": {
+          "type": "boolean",
+          "default": false
+        },
+        "requireRemotePackageSHA256": {
+          "type": "boolean",
+          "default": true
+        },
+        "allowedPackageHosts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(?!.*[/@A-Z]).+$"
+          },
+          "uniqueItems": true,
+          "default": []
+        },
+        "packageCacheDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Configuration-relative content-addressed cache for digest-pinned remote packages."
+        },
+        "offline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Resolve remote package references only from packageCacheDirectory."
+        },
+        "allowCommunityExtensions": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowedExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+          },
+          "uniqueItems": true,
+          "default": []
+        },
+        "maxRemotePackageBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2097152
+        }
+      }
+    }
+  }
 }

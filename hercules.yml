@@ -2,10 +2,35 @@ version: 1
 
 name: edge
 debug: false
+listenAddress: 0.0.0.0
 port: 9100
+db: ":memory:"
+ephemeralDB: true
+duckdb:
+  memoryLimit: 1GB
+  threads: 4
+  tempDirectory: ""
+http:
+  tlsCertificateFile: ""
+  tlsKeyFile: ""
+  bearerTokenFile: ""
+collectionIntervalSeconds: 15
+collectionTimeoutSeconds: 10
+maxRowsPerMetric: 100000
+maxSeries: 100000
 
 globalLabels:
-  - env: $ENV # Inject prometheus labels from env var
+  env: development
 
 packages:
   - package: hercules-packages/snowflake/1.0.yml
+
+security:
+  allowRemotePackages: false
+  requireRemotePackageSHA256: true
+  allowedPackageHosts: []
+  packageCacheDirectory: ""
+  offline: false
+  allowCommunityExtensions: false
+  allowedExtensions: []
+  maxRemotePackageBytes: 2097152

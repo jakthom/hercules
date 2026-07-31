@@ -1,0 +1,59 @@
+version: 2
+
+project_name: hercules
+
+before:
+  hooks:
+    - go mod verify
+    - go test ./...
+
+builds:
+  - id: linux-amd64
+    main: ./cmd/hercules
+    binary: hercules
+    goos: [linux]
+    goarch: [amd64]
+    goamd64: [v1]
+    env:
+      - CGO_ENABLED=1
+      - CC=gcc
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+  - id: linux-arm64
+    main: ./cmd/hercules
+    binary: hercules
+    goos: [linux]
+    goarch: [arm64]
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - ids: [linux-amd64, linux-arm64]
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - schemas/*.json
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+release:
+  prerelease: auto
